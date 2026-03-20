@@ -1,1 +1,120 @@
-/* You can add global styles to this file, and also import other style files */
+@font-face {
+  font-family: 'Barata';
+  src: url('/fonts/barata.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+10A0-10FF, U+1C90-1CBF, U+2D00-2D2F;
+}
+
+@font-face {
+  font-family: 'Sanet';
+  src: url('/fonts/sanet.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+10A0-10FF, U+1C90-1CBF, U+2D00-2D2F;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Dancing+Script:wght@400..700&family=Montserrat:wght@400;500;600;700&family=Noto+Sans+Georgian:wght@400;500;600;700&family=Noto+Serif+Georgian:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800&display=swap');
+
+:root {
+  --ivory: #f9f4ee;
+  --ivory-deep: #efe2d1;
+  --champagne: #e8cfae;
+  --gold-soft: #f2ddbf;
+  --gold-deep: #b48b5a;
+  --blush: #ead7d6;
+  --ink-strong: #1d1815;
+  --ink-muted: #5f5147;
+  --font-georgian-body: 'Sanet', var(--font-body), 'Noto Sans Georgian', sans-serif;
+  --font-georgian-display:
+    'Barata', var(--font-display-alt), 'Noto Serif Georgian', 'Noto Sans Georgian', serif;
+  --font-logo-script: 'Dancing Script', cursive;
+  --font-display: 'Playfair Display', serif;
+  --font-display-alt: 'Cormorant Garamond', serif;
+  --font-body: 'Montserrat', sans-serif;
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(circle at top, rgba(232, 207, 174, 0.4), transparent 30%),
+    linear-gradient(180deg, #fbf7f2, #f5ede5 45%, #f8f3ee);
+  color: var(--ink-strong);
+}
+
+body.lang-ka .page-shell * {
+  font-family: var(--font-georgian-body) !important;
+}
+
+body.lang-ka .page-shell .hero-copy h2,
+body.lang-ka .page-shell .section-heading h2,
+body.lang-ka .page-shell .service-card h3,
+body.lang-ka .page-shell .package-card h3,
+body.lang-ka .page-shell .destination-card h3,
+body.lang-ka .page-shell .portfolio-card h3,
+body.lang-ka .page-shell .blog-card h3,
+body.lang-ka .page-shell .extra-card h3,
+body.lang-ka .page-shell .faq-list summary {
+  font-family: var(--font-georgian-display) !important;
+}
+
+body.lang-ka .page-shell .brand-name,
+body.lang-ka .page-shell .brand-hero-title {
+  font-family: var(--font-logo-script) !important;
+}
+
+body.lang-ka .page-shell .language-toggle button {
+  font-family: var(--font-body) !important;
+}
+
+body.lang-ka .page-shell .brand-kicker,
+body.lang-ka .page-shell .card-kicker,
+body.lang-ka .page-shell .package-guests,
+body.lang-ka .page-shell .portfolio-index,
+body.lang-ka .page-shell .blog-card span,
+body.lang-ka .page-shell .eyebrow {
+  text-transform: none !important;
+  letter-spacing: 0.04em !important;
+}
+
+img,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+.inline-logo-font {
+  font-family: var(--font-body) !important;
+  white-space: nowrap;
+  font-size: 1em;
+  font-weight: 400;
+  line-height: inherit;
+  vertical-align: baseline;
+  letter-spacing: normal;
+}
