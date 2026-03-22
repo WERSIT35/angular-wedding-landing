@@ -4,6 +4,8 @@
   [class.lang-ka]="currentLanguage() === 'ka'"
   [class.lang-en]="currentLanguage() === 'en'"
 >
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
   <header class="site-header">
     <a class="brand-mark" href="#home">
       <span class="brand-kicker">{{ headingText(content().siteTagline) }}</span>
@@ -11,7 +13,7 @@
     </a>
 
     <nav class="site-nav" aria-label="Primary">
-      @for (item of content().navItems; track item.label) {
+      @for (item of primaryNavItems(); track item.label) {
         <a [href]="item.href">{{ headingText(item.label) }}</a>
       }
     </nav>
@@ -34,27 +36,22 @@
         </button>
       </div>
 
-      <a class="header-cta" href="#contact">{{ headingText(content().headerCta) }}</a>
+      <a class="header-cta" href="#contact" (click)="onCtaClick('header')">RSVP now</a>
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <section class="hero-section" id="home">
       <div class="hero-backdrop">
-        <video
-          class="hero-video"
-          autoplay
-          muted
-          loop
-          playsinline
-          poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
-          aria-hidden="true"
-        >
-          <source
-            src="https://player.vimeo.com/external/434045526.sd.mp4?s=37a4db2fe0ef3ebde3fd0d73a1ad7e90ba3249a4&profile_id=139&oauth2_token_id=57447761"
-            type="video/mp4"
-          />
-        </video>
+        <img
+          class="hero-image"
+          src="/assets/images/L2D100242.JPG"
+          width="1440"
+          height="900"
+          alt="Wedding couple and guests during golden-hour ceremony"
+          fetchpriority="high"
+          decoding="async"
+        />
       </div>
 
       <div class="hero-copy">
@@ -64,11 +61,8 @@
         <p class="hero-description" [innerHTML]="heroDescriptionHtml()"></p>
 
         <div class="hero-actions">
-          <a class="button button-primary" href="#contact">{{ content().hero.primaryCta }}</a>
-          <a class="button button-secondary" href="#contact">
-            {{ content().hero.secondaryCta }}
-          </a>
-          <a class="button button-ghost" href="#packages">{{ content().hero.tertiaryCta }}</a>
+          <a class="button button-primary" href="#contact" (click)="onCtaClick('hero-primary')">RSVP now</a>
+          <a class="button button-secondary" href="#essentials" (click)="onCtaClick('hero-secondary')">View details</a>
         </div>
 
         <div class="hero-stats">
@@ -82,16 +76,32 @@
       </div>
     </section>
 
-    <section class="section intro-flow">
+    <section class="section essentials-section" id="essentials">
       <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().flow.eyebrow) }}</p>
-        <h2>{{ headingText(content().flow.title) }}</h2>
+        <p class="eyebrow">Event info</p>
+        <h2>{{ eventEssentialsTitle() }}</h2>
+        <p>{{ eventEssentialsDescription() }}</p>
       </div>
 
-      <div class="flow-track">
-        @for (step of content().flow.steps; track step) {
-          <span>{{ headingText(step) }}</span>
+      <div class="essentials-grid">
+        @for (item of eventEssentials(); track item.label) {
+          <article class="essential-card">
+            <h3>{{ item.label }}</h3>
+            <p>{{ item.value }}</p>
+          </article>
         }
+      </div>
+
+      <div class="timeline-card">
+        <h3>{{ eventTimelineTitle() }}</h3>
+        <ul>
+          @for (slot of eventTimeline(); track slot) {
+            <li>{{ slot }}</li>
+          }
+        </ul>
+        <button class="button button-secondary" type="button" (click)="openMap()">
+          Open venue map
+        </button>
       </div>
     </section>
 
@@ -106,7 +116,7 @@
           @for (paragraph of content().about.paragraphs; track paragraph) {
             <p>{{ paragraph }}</p>
           }
-          <a class="button button-primary" href="#contact">{{ headingText(content().about.cta) }}</a>
+          <a class="button button-primary" href="#contact" (click)="onCtaClick('about')">RSVP now</a>
         </div>
 
         <aside class="difference-card">
@@ -120,123 +130,25 @@
       </div>
     </section>
 
-    <section class="section services-section" id="services">
+    <section class="section gallery-section" id="portfolio">
       <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().services.eyebrow) }}</p>
-        <h2>{{ headingText(content().services.title) }}</h2>
+        <p class="eyebrow">Gallery</p>
+        <h2>Moments from real celebrations</h2>
       </div>
-
-      <div class="service-grid">
-        @for (service of content().services.items; track service.title) {
-          <article class="service-card">
-            <h3>{{ headingText(service.title) }}</h3>
-            <p>{{ service.description }}</p>
-            <ul>
-              @for (item of service.items; track item) {
-                <li>{{ item }}</li>
-              }
-            </ul>
-            <a class="text-link" href="#contact">{{ headingText(service.cta) }}</a>
-          </article>
+      <div class="gallery-grid">
+        @for (photo of galleryPhotos(); track photo.src) {
+          <figure class="gallery-card">
+            <img
+              [src]="photo.src"
+              [alt]="photo.alt"
+              loading="lazy"
+              decoding="async"
+              width="900"
+              height="600"
+            />
+          </figure>
         }
       </div>
-    </section>
-
-    <section class="section packages-section" id="packages">
-      <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().packages.eyebrow) }}</p>
-        <h2>{{ headingText(content().packages.title) }}</h2>
-      </div>
-
-      <div class="package-grid">
-        @for (pkg of content().packages.items; track pkg.title) {
-          <article class="package-card" [class.featured]="pkg.featured">
-            <p class="package-guests">{{ headingText(pkg.guests) }}</p>
-            <h3>{{ headingText(pkg.title) }}</h3>
-            <p class="package-price">{{ pkg.price }}</p>
-            <p class="package-description">{{ pkg.description }}</p>
-            <ul>
-              @for (item of pkg.items; track item) {
-                <li>{{ item }}</li>
-              }
-            </ul>
-            <a class="button button-secondary" href="#contact">{{ headingText(pkg.cta) }}</a>
-          </article>
-        }
-      </div>
-    </section>
-
-    <section class="section destinations-section" id="destinations">
-      <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().destinations.eyebrow) }}</p>
-        <h2>{{ headingText(content().destinations.title) }}</h2>
-        <p>{{ content().destinations.description }}</p>
-      </div>
-
-      <div class="destination-grid">
-        @for (destination of content().destinations.items; track destination.title) {
-          <article class="destination-card">
-            <h3>{{ headingText(destination.title) }}</h3>
-            <p>{{ destination.description }}</p>
-          </article>
-        }
-      </div>
-
-      <a class="button button-primary" href="#contact">{{ headingText(content().destinations.cta) }}</a>
-    </section>
-
-    <section class="section portfolio-section" id="portfolio">
-      <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().portfolio.eyebrow) }}</p>
-        <h2>{{ headingText(content().portfolio.title) }}</h2>
-      </div>
-
-      <div class="portfolio-grid">
-        @for (group of content().portfolio.groups; track group) {
-          <article class="portfolio-card">
-            <span class="portfolio-index">0{{ $index + 1 }}</span>
-            <h3>{{ headingText(group) }}</h3>
-          </article>
-        }
-      </div>
-
-      <a class="button button-ghost" href="#contact">{{ headingText(content().portfolio.cta) }}</a>
-    </section>
-
-    <section class="section testimonials-section" id="testimonials">
-      <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().testimonials.eyebrow) }}</p>
-        <h2>{{ headingText(content().testimonials.title) }}</h2>
-      </div>
-
-      <div class="testimonial-grid">
-        @for (testimonial of content().testimonials.items; track testimonial.name) {
-          <blockquote class="testimonial-card">
-            <p>"{{ testimonial.quote }}"</p>
-            <footer>{{ testimonial.name }}, {{ testimonial.country }}</footer>
-          </blockquote>
-        }
-      </div>
-
-      <a class="button button-secondary" href="#contact">{{ headingText(content().testimonials.cta) }}</a>
-    </section>
-
-    <section class="section blog-section" id="blog">
-      <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().blog.eyebrow) }}</p>
-        <h2>{{ headingText(content().blog.title) }}</h2>
-      </div>
-
-      <div class="blog-grid">
-        @for (post of content().blog.items; track post) {
-          <article class="blog-card">
-            <span>{{ headingText(content().blog.badge) }}</span>
-            <h3>{{ headingText(post) }}</h3>
-          </article>
-        }
-      </div>
-
-      <a class="button button-primary" href="#contact">{{ headingText(content().blog.cta) }}</a>
     </section>
 
     <section class="section faq-section" id="faq">
@@ -255,88 +167,124 @@
       </div>
     </section>
 
-    <section class="section extras-section">
-      <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().extras.eyebrow) }}</p>
-        <h2>{{ headingText(content().extras.title) }}</h2>
-      </div>
-
-      <div class="extras-grid">
-        @for (feature of content().extras.items; track feature) {
-          <article class="extra-card">
-            <h3>{{ headingText(feature) }}</h3>
-          </article>
-        }
-      </div>
-    </section>
-
     <section class="section contact-section" id="contact">
       <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().contact.eyebrow) }}</p>
-        <h2>{{ headingText(content().contact.title) }}</h2>
-        <p>{{ content().contact.description }}</p>
+        <p class="eyebrow">Contact & RSVP</p>
+        <h2>RSVP in 30 seconds</h2>
+        <p>Short form, instant send via email or WhatsApp.</p>
       </div>
 
       <div class="contact-layout">
-        <form class="contact-form">
+        <form class="contact-form" (submit)="$event.preventDefault()" (focusin)="onRsvpFormInteraction()">
           <label>
             <span>{{ headingText(content().contact.labels.name) }}</span>
-            <input type="text" [placeholder]="content().contact.placeholders.name" />
+            <input #nameInput type="text" [placeholder]="content().contact.placeholders.name" autocomplete="name" />
           </label>
           <label>
             <span>{{ headingText(content().contact.labels.email) }}</span>
-            <input type="email" [placeholder]="content().contact.placeholders.email" />
+            <input #emailInput type="email" [placeholder]="content().contact.placeholders.email" autocomplete="email" />
           </label>
           <label>
             <span>{{ headingText(content().contact.labels.phone) }}</span>
-            <input type="tel" [placeholder]="content().contact.placeholders.phone" />
+            <input #phoneInput type="tel" [placeholder]="content().contact.placeholders.phone" autocomplete="tel" />
           </label>
           <label>
             <span>{{ headingText(content().contact.labels.date) }}</span>
-            <input type="date" />
+            <input #dateInput type="date" />
           </label>
           <label>
             <span>{{ headingText(content().contact.labels.guests) }}</span>
-            <input type="number" [placeholder]="content().contact.placeholders.guests" />
+            <input #guestsInput type="number" [placeholder]="content().contact.placeholders.guests" min="1" />
           </label>
           <label>
-            <span>{{ headingText(content().contact.labels.location) }}</span>
-            <input type="text" [placeholder]="content().contact.placeholders.location" />
+            <span>{{ plusOneLabel() }}</span>
+            <select #plusOneInput>
+              @for (option of plusOneOptions(); track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
           </label>
-          <label>
-            <span>{{ headingText(content().contact.labels.budget) }}</span>
-            <input type="text" [placeholder]="content().contact.placeholders.budget" />
+          <label class="full-width">
+            <span>{{ dietaryLabel() }}</span>
+            <input #dietaryInput type="text" placeholder="Vegetarian, vegan, allergies, none" />
           </label>
           <label class="full-width">
             <span>{{ headingText(content().contact.labels.message) }}</span>
             <textarea
-              rows="5"
+              #messageInput
+              rows="4"
               [placeholder]="content().contact.placeholders.message"
             ></textarea>
           </label>
 
           <div class="form-actions full-width">
-            <a class="button button-primary" href="mailto:hello@eliteweddings.ge">
-              {{ headingText(content().contact.actions.consultation) }}
-            </a>
-            <a class="button button-secondary" href="mailto:hello@eliteweddings.ge">
-              {{ headingText(content().contact.actions.inquiry) }}
-            </a>
-            <a class="button button-ghost" href="https://wa.me/995555000000">
-              {{ headingText(content().contact.actions.call) }}
-            </a>
+            <button
+              class="button button-primary"
+              type="button"
+              (click)="sendInquiryByEmail({
+                name: nameInput.value,
+                email: emailInput.value,
+                phone: phoneInput.value,
+                date: dateInput.value,
+                guests: guestsInput.value,
+                plusOne: plusOneInput.value,
+                dietary: dietaryInput.value,
+                message: messageInput.value
+              })"
+            >
+              Send RSVP by email
+            </button>
+            <button
+              class="button button-secondary"
+              type="button"
+              (click)="sendInquiryByWhatsApp({
+                name: nameInput.value,
+                email: emailInput.value,
+                phone: phoneInput.value,
+                date: dateInput.value,
+                guests: guestsInput.value,
+                plusOne: plusOneInput.value,
+                dietary: dietaryInput.value,
+                message: messageInput.value
+              })"
+            >
+              Send RSVP by WhatsApp
+            </button>
           </div>
+
+          @if (inquiryConfirmation()) {
+            <p class="form-confirmation full-width" role="status" aria-live="polite">
+              {{ inquiryConfirmation() }}
+            </p>
+          }
         </form>
 
         <aside class="contact-card">
-          <p class="card-kicker">{{ headingText(content().contact.cardTitle) }}</p>
+          <p class="card-kicker">{{ quickContactLabel() }}</p>
           <ul>
-            @for (reason of content().contact.reasons; track reason) {
-              <li>{{ reason }}</li>
-            }
+            <li><strong>Email:</strong> Eliteweddingsandeventsco1@gmail.com</li>
+            <li><strong>WhatsApp:</strong> +995 595 930 899</li>
+            <li>Response time: within 24 hours</li>
           </ul>
+
+          <div class="form-actions">
+            <a class="button button-ghost" [href]="whatsAppDirectLink()" target="_blank" rel="noopener noreferrer" (click)="onCtaClick('contact-whatsapp')">Open WhatsApp</a>
+          </div>
         </aside>
       </div>
     </section>
   </main>
+
+  <footer class="site-footer" id="footer">
+    <div class="footer-copy">
+      <p class="eyebrow">Elite Weddings & Events Co.</p>
+      <h2>Ready to celebrate with us?</h2>
+      <a class="button button-primary" href="#contact" (click)="onCtaClick('footer')">RSVP now</a>
+    </div>
+  </footer>
+
+  <div class="mobile-sticky-cta" aria-label="Quick actions">
+    <a class="button button-primary" href="#contact" (click)="onCtaClick('sticky-rsvp')">RSVP now</a>
+    <a class="button button-secondary" [href]="whatsAppDirectLink()" target="_blank" rel="noopener noreferrer" (click)="onCtaClick('sticky-whatsapp')">WhatsApp</a>
+  </div>
 </div>
