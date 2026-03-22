@@ -61,26 +61,56 @@ export class App {
   }
 
   protected primaryNavItems(): NavItem[] {
+    if (this.currentLanguage() === 'ka') {
+      return [
+        { label: 'მთავარი', href: '#home' },
+        { label: 'დეტალები', href: '#essentials' },
+        { label: 'ჩვენ შესახებ', href: '#about' },
+        { label: 'FAQ', href: '#faq' },
+        { label: 'კონტაქტი', href: '#contact' }
+      ];
+    }
+
     return PRIMARY_NAV_ITEMS;
   }
 
   protected eventEssentialsTitle(): string {
-    return 'Event essentials';
+    return this.currentLanguage() === 'ka' ? 'მთავარი დეტალები' : 'Event essentials';
   }
 
   protected eventEssentialsDescription(): string {
-    return 'Everything guests need at a glance: date, time, location, dress code, and timeline.';
+    return this.currentLanguage() === 'ka'
+      ? 'სტუმრებისთვის საჭირო ყველაფერი ერთ ეკრანზე: თარიღი, დრო, ლოკაცია, დრეს კოდი და ტაიმლაინი.'
+      : 'Everything guests need at a glance: date, time, location, dress code, and timeline.';
   }
 
   protected eventEssentials(): { label: string; value: string }[] {
+    if (this.currentLanguage() === 'ka') {
+      return [
+        { label: 'თარიღი', value: '12 სექტემბერი, 2026' },
+        { label: 'დრო', value: '17:00 ცერემონია, 19:00 მიღება' },
+        { label: 'ლოკაცია', value: 'Wedding Palace, თბილისი' },
+        { label: 'დრეს კოდი', value: 'Formal / Black tie optional' }
+      ];
+    }
+
     return EVENT_ESSENTIALS;
   }
 
   protected eventTimelineTitle(): string {
-    return 'Wedding day timeline';
+    return this.currentLanguage() === 'ka' ? 'დღის ტაიმლაინი' : 'Wedding day timeline';
   }
 
   protected eventTimeline(): string[] {
+    if (this.currentLanguage() === 'ka') {
+      return [
+        '17:00 - სტუმრების მიღება',
+        '17:30 - ცერემონია',
+        '19:00 - ვახშამი',
+        '21:00 - წვეულება'
+      ];
+    }
+
     return EVENT_TIMELINE;
   }
 
@@ -89,19 +119,92 @@ export class App {
   }
 
   protected plusOneLabel(): string {
-    return 'Plus one';
+    return this.currentLanguage() === 'ka' ? 'პლუს ერთი' : 'Plus one';
   }
 
   protected quickContactLabel(): string {
-    return 'Quick contact';
+    return this.currentLanguage() === 'ka' ? 'სწრაფი კონტაქტი' : 'Quick contact';
   }
 
   protected dietaryLabel(): string {
-    return 'Dietary preferences';
+    return this.currentLanguage() === 'ka' ? 'კვებითი შეზღუდვები' : 'Dietary preferences';
   }
 
   protected plusOneOptions(): SelectOption[] {
+    if (this.currentLanguage() === 'ka') {
+      return [
+        { value: '', label: 'აირჩიეთ' },
+        { value: 'Yes', label: 'კი' },
+        { value: 'No', label: 'არა' },
+        { value: 'Maybe', label: 'შესაძლოა' }
+      ];
+    }
+
     return PLUS_ONE_OPTIONS;
+  }
+
+  protected rsvpNowLabel(): string {
+    return this.currentLanguage() === 'ka' ? 'RSVP ახლავე' : 'RSVP now';
+  }
+
+  protected viewDetailsLabel(): string {
+    return this.currentLanguage() === 'ka' ? 'დეტალების ნახვა' : 'View details';
+  }
+
+  protected eventInfoEyebrow(): string {
+    return this.currentLanguage() === 'ka' ? 'ღონისძიების ინფორმაცია' : 'Event info';
+  }
+
+  protected openMapLabel(): string {
+    return this.currentLanguage() === 'ka' ? 'ლოკაციის რუკის გახსნა' : 'Open venue map';
+  }
+
+  protected galleryEyebrow(): string {
+    return this.currentLanguage() === 'ka' ? 'გალერეა' : 'Gallery';
+  }
+
+  protected galleryTitle(): string {
+    return this.currentLanguage() === 'ka'
+      ? 'მომენტები რეალური ღონისძიებებიდან'
+      : 'Moments from real celebrations';
+  }
+
+  protected contactEyebrow(): string {
+    return this.currentLanguage() === 'ka' ? 'კონტაქტი და RSVP' : 'Contact & RSVP';
+  }
+
+  protected contactTitle(): string {
+    return this.currentLanguage() === 'ka' ? 'RSVP 30 წამში' : 'RSVP in 30 seconds';
+  }
+
+  protected contactDescription(): string {
+    return this.currentLanguage() === 'ka'
+      ? 'მოკლე ფორმა, მყისიერი გაგზავნა ელფოსტით ან WhatsApp-ით.'
+      : 'Short form, instant send via email or WhatsApp.';
+  }
+
+  protected sendByEmailLabel(): string {
+    return this.currentLanguage() === 'ka' ? 'RSVP გაგზავნა ელფოსტაზე' : 'Send RSVP by email';
+  }
+
+  protected sendByWhatsappLabel(): string {
+    return this.currentLanguage() === 'ka'
+      ? 'RSVP გაგზავნა WhatsApp-ზე'
+      : 'Send RSVP by WhatsApp';
+  }
+
+  protected responseTimeLabel(): string {
+    return this.currentLanguage() === 'ka' ? 'პასუხის დრო: 24 საათში' : 'Response time: within 24 hours';
+  }
+
+  protected openWhatsappLabel(): string {
+    return this.currentLanguage() === 'ka' ? 'WhatsApp გახსნა' : 'Open WhatsApp';
+  }
+
+  protected footerTitle(): string {
+    return this.currentLanguage() === 'ka'
+      ? 'მზად ხართ აღსანიშნავად ჩვენთან ერთად?'
+      : 'Ready to celebrate with us?';
   }
 
   protected whatsAppDirectLink(): string {
@@ -142,7 +245,11 @@ export class App {
     };
     const mailToUrl = this.contactService.buildEmailUrl(inquiry, labels);
 
-    this.inquiryConfirmation.set('Ready to send. Your email app will open now.');
+    this.inquiryConfirmation.set(
+      this.currentLanguage() === 'ka'
+        ? 'მზად არის. თქვენი ელფოსტის აპი ახლა გაიხსნება.'
+        : 'Ready to send. Your email app will open now.'
+    );
     this.trackEvent('rsvp_complete', { channel: 'email' });
     this.navigateTo(mailToUrl);
   }
@@ -163,7 +270,11 @@ export class App {
     };
     const whatsAppUrl = this.contactService.buildWhatsAppUrl(inquiry, labels);
 
-    this.inquiryConfirmation.set('Ready to send. WhatsApp chat will open now.');
+    this.inquiryConfirmation.set(
+      this.currentLanguage() === 'ka'
+        ? 'მზად არის. WhatsApp ჩატი ახლა გაიხსნება.'
+        : 'Ready to send. WhatsApp chat will open now.'
+    );
     this.trackEvent('rsvp_complete', { channel: 'whatsapp' });
     this.openInNewTab(whatsAppUrl);
   }

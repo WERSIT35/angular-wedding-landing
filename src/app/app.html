@@ -36,7 +36,7 @@
         </button>
       </div>
 
-      <a class="header-cta" href="#contact" (click)="onCtaClick('header')">RSVP now</a>
+      <a class="header-cta" href="#contact" (click)="onCtaClick('header')">{{ rsvpNowLabel() }}</a>
     </div>
   </header>
 
@@ -61,8 +61,8 @@
         <p class="hero-description" [innerHTML]="heroDescriptionHtml()"></p>
 
         <div class="hero-actions">
-          <a class="button button-primary" href="#contact" (click)="onCtaClick('hero-primary')">RSVP now</a>
-          <a class="button button-secondary" href="#essentials" (click)="onCtaClick('hero-secondary')">View details</a>
+          <a class="button button-primary" href="#contact" (click)="onCtaClick('hero-primary')">{{ rsvpNowLabel() }}</a>
+          <a class="button button-secondary" href="#essentials" (click)="onCtaClick('hero-secondary')">{{ viewDetailsLabel() }}</a>
         </div>
 
         <div class="hero-stats">
@@ -78,7 +78,7 @@
 
     <section class="section essentials-section" id="essentials">
       <div class="section-heading">
-        <p class="eyebrow">Event info</p>
+        <p class="eyebrow">{{ eventInfoEyebrow() }}</p>
         <h2>{{ eventEssentialsTitle() }}</h2>
         <p>{{ eventEssentialsDescription() }}</p>
       </div>
@@ -100,7 +100,7 @@
           }
         </ul>
         <button class="button button-secondary" type="button" (click)="openMap()">
-          Open venue map
+          {{ openMapLabel() }}
         </button>
       </div>
     </section>
@@ -132,8 +132,8 @@
 
     <section class="section gallery-section" id="portfolio">
       <div class="section-heading">
-        <p class="eyebrow">Gallery</p>
-        <h2>Moments from real celebrations</h2>
+        <p class="eyebrow">{{ galleryEyebrow() }}</p>
+        <h2>{{ galleryTitle() }}</h2>
       </div>
       <div class="gallery-grid">
         @for (photo of galleryPhotos(); track photo.src) {
@@ -169,9 +169,9 @@
 
     <section class="section contact-section" id="contact">
       <div class="section-heading">
-        <p class="eyebrow">Contact & RSVP</p>
-        <h2>RSVP in 30 seconds</h2>
-        <p>Short form, instant send via email or WhatsApp.</p>
+        <p class="eyebrow">{{ contactEyebrow() }}</p>
+        <h2>{{ contactTitle() }}</h2>
+        <p>{{ contactDescription() }}</p>
       </div>
 
       <div class="contact-layout">
@@ -206,7 +206,7 @@
           </label>
           <label class="full-width">
             <span>{{ dietaryLabel() }}</span>
-            <input #dietaryInput type="text" placeholder="Vegetarian, vegan, allergies, none" />
+            <input #dietaryInput type="text" [placeholder]="dietaryLabel()" />
           </label>
           <label class="full-width">
             <span>{{ headingText(content().contact.labels.message) }}</span>
@@ -232,7 +232,7 @@
                 message: messageInput.value
               })"
             >
-              Send RSVP by email
+              {{ sendByEmailLabel() }}
             </button>
             <button
               class="button button-secondary"
@@ -248,7 +248,7 @@
                 message: messageInput.value
               })"
             >
-              Send RSVP by WhatsApp
+              {{ sendByWhatsappLabel() }}
             </button>
           </div>
 
@@ -264,11 +264,11 @@
           <ul>
             <li><strong>Email:</strong> Eliteweddingsandeventsco1@gmail.com</li>
             <li><strong>WhatsApp:</strong> +995 595 930 899</li>
-            <li>Response time: within 24 hours</li>
+            <li>{{ responseTimeLabel() }}</li>
           </ul>
 
           <div class="form-actions">
-            <a class="button button-ghost" [href]="whatsAppDirectLink()" target="_blank" rel="noopener noreferrer" (click)="onCtaClick('contact-whatsapp')">Open WhatsApp</a>
+            <a class="button button-ghost" [href]="whatsAppDirectLink()" target="_blank" rel="noopener noreferrer" (click)="onCtaClick('contact-whatsapp')">{{ openWhatsappLabel() }}</a>
           </div>
         </aside>
       </div>
@@ -278,13 +278,13 @@
   <footer class="site-footer" id="footer">
     <div class="footer-copy">
       <p class="eyebrow">Elite Weddings & Events Co.</p>
-      <h2>Ready to celebrate with us?</h2>
-      <a class="button button-primary" href="#contact" (click)="onCtaClick('footer')">RSVP now</a>
+      <h2>{{ footerTitle() }}</h2>
+      <a class="button button-primary" href="#contact" (click)="onCtaClick('footer')">{{ rsvpNowLabel() }}</a>
     </div>
   </footer>
 
   <div class="mobile-sticky-cta" aria-label="Quick actions">
-    <a class="button button-primary" href="#contact" (click)="onCtaClick('sticky-rsvp')">RSVP now</a>
-    <a class="button button-secondary" [href]="whatsAppDirectLink()" target="_blank" rel="noopener noreferrer" (click)="onCtaClick('sticky-whatsapp')">WhatsApp</a>
+    <a class="button button-primary" href="#contact" (click)="onCtaClick('sticky-rsvp')">{{ rsvpNowLabel() }}</a>
+    <a class="button button-secondary" [href]="whatsAppDirectLink()" target="_blank" rel="noopener noreferrer" (click)="onCtaClick('sticky-whatsapp')">{{ openWhatsappLabel() }}</a>
   </div>
 </div>
