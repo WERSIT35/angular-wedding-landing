@@ -2,6 +2,7 @@
 
 # Compiled output
 /dist
+/backend/data/store.json
 /tmp
 /out-tsc
 /bazel-out

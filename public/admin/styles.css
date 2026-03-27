@@ -1,0 +1,145 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(205, 169, 122, 0.25), transparent 42%),
+    linear-gradient(180deg, #f8f3ec, #f1e8dc);
+  color: #1d1815;
+}
+
+.shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  display: grid;
+  gap: 14px;
+}
+
+.hero {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 236, 220, 0.92));
+  border: 1px solid #e3d9cd;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 5vw, 2.3rem);
+}
+
+.kicker {
+  margin: 0 0 6px;
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8a6a44;
+  font-weight: 700;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid #e0d4c6;
+  border-radius: 14px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 10px 24px rgba(61, 37, 18, 0.06);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+#adminCard {
+  grid-row: span 2;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+
+input,
+textarea,
+button {
+  font: inherit;
+}
+
+input,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid #ccb9a5;
+  padding: 10px;
+  background: #fffdfb;
+}
+
+textarea {
+  font-family: Consolas, "Courier New", monospace;
+  min-height: 280px;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #cda97a;
+  color: #1a140f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.ghost {
+  background: #f2ebe3;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.msg {
+  margin: 0;
+  font-size: 14px;
+  color: #684c2d;
+}
+
+.output {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.muted {
+  margin: 0;
+  color: #64584f;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  #adminCard {
+    grid-row: auto;
+  }
+}

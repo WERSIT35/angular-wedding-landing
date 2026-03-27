@@ -11,7 +11,7 @@ import {
 } from './data/event.data';
 import { CONTENT } from './data/site-content.data';
 import { ContactInquiry } from './models/contact.model';
-import { Language, NavItem } from './models/site-content.model';
+import { ContentSection, Language, NavItem } from './models/site-content.model';
 import { AnalyticsService } from './services/analytics.service';
 import { ContactService } from './services/contact.service';
 
@@ -28,7 +28,10 @@ export class App {
   private hasTrackedRsvpStart = false;
 
   protected readonly currentLanguage = signal<Language>('en');
-  protected readonly content = computed(() => CONTENT[this.currentLanguage()]);
+  private readonly remoteContent = signal<Partial<Record<Language, ContentSection>> | null>(null);
+  protected readonly content = computed(
+    () => this.remoteContent()?.[this.currentLanguage()] ?? CONTENT[this.currentLanguage()]
+  );
   protected readonly inquiryConfirmation = signal('');
 
   public constructor() {
@@ -38,6 +41,32 @@ export class App {
       this.document.body.classList.toggle('lang-en', language === 'en');
       this.document.documentElement.lang = language;
     });
+
+    void this.loadRemoteContent();
+  }
+
+  private async loadRemoteContent(): Promise<void> {
+    const endpoints = ['/api/public/content', 'http://localhost:4000/api/public/content'];
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          continue;
+        }
+
+        const data = (await response.json()) as {
+          content?: Partial<Record<Language, ContentSection>> | null;
+        };
+
+        if (data.content && typeof data.content === 'object') {
+          this.remoteContent.set(data.content);
+          return;
+        }
+      } catch {
+        // Keep trying fallback endpoints.
+      }
+    }
   }
 
   protected setLanguage(language: Language): void {

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elite Admin</title>
+  <link rel="stylesheet" href="/admin/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="kicker">Elite Weddings</p>
+      <h1>Admin Console</h1>
+      <p class="muted">Manage website content, MFA, and audit logs from one secure place.</p>
+    </header>
+
+    <section class="card" id="authCard">
+      <h2>Admin Login</h2>
+      <label>Email<input id="email" type="email" placeholder="admin@eliteweddings.local" /></label>
+      <label>Password<input id="password" type="password" placeholder="********" /></label>
+      <button id="loginBtn">Login</button>
+      <div id="mfaWrap" class="hidden">
+        <label>MFA Code<input id="mfaCode" type="text" placeholder="6-digit code" /></label>
+        <button id="verifyMfaBtn">Verify MFA</button>
+      </div>
+      <p id="authMsg" class="msg"></p>
+    </section>
+
+    <div class="grid hidden" id="adminGrid">
+      <section class="card" id="adminCard">
+        <div class="row">
+          <h2>Content Editor</h2>
+          <button id="logoutBtn" class="ghost">Logout</button>
+        </div>
+        <p class="muted">Paste full content JSON. Save to apply immediately via API.</p>
+        <textarea id="contentEditor" rows="18" spellcheck="false"></textarea>
+        <div class="row">
+          <button id="loadBtn" class="ghost">Load</button>
+          <button id="saveBtn">Save Content</button>
+        </div>
+        <p id="contentMsg" class="msg"></p>
+      </section>
+
+      <section class="card hidden" id="mfaCard">
+        <h2>MFA Setup</h2>
+        <p class="muted">Enable MFA on admin account and keep recovery codes secure.</p>
+        <button id="setupMfaBtn" class="ghost">Enable / Reset MFA</button>
+        <pre id="mfaOutput" class="output"></pre>
+      </section>
+
+      <section class="card hidden" id="auditCard">
+        <h2>Audit Logs</h2>
+        <button id="refreshAuditBtn" class="ghost">Refresh Logs</button>
+        <pre id="auditOutput" class="output"></pre>
+      </section>
+    </div>
+  </main>
+
+  <script src="/admin/admin.js" type="module"></script>
+</body>
+</html>
