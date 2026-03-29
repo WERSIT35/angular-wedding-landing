@@ -123,5 +123,41 @@ export type ContentSection = {
     };
     cardTitle: string;
     reasons: string[];
+    channels?: {
+      email?: string;
+      whatsapp?: string;
+      whatsappNumber?: string;
+    };
   };
+  landing?: LandingContentConfig;
+};
+
+export type LandingContentConfig = {
+  heroImageSrc?: string;
+  heroImageAlt?: string;
+  rsvpNowLabel?: string;
+  viewDetailsLabel?: string;
+  eventInfoEyebrow?: string;
+  eventEssentialsTitle?: string;
+  eventEssentialsDescription?: string;
+  eventEssentials?: { label: string; value: string }[];
+  eventTimelineTitle?: string;
+  eventTimeline?: string[];
+  mapLink?: string;
+  openMapLabel?: string;
+  galleryEyebrow?: string;
+  galleryTitle?: string;
+  galleryPhotos?: { src: string; alt: string }[];
+  plusOneLabel?: string;
+  plusOneOptions?: { value: string; label: string }[];
+  quickContactLabel?: string;
+  dietaryLabel?: string;
+  contactEyebrow?: string;
+  contactTitle?: string;
+  contactDescription?: string;
+  sendByEmailLabel?: string;
+  sendByWhatsappLabel?: string;
+  responseTimeLabel?: string;
+  openWhatsappLabel?: string;
+  footerTitle?: string;
 };

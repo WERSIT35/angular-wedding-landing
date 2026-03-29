@@ -1,0 +1,77 @@
+<section class="hero-section" id="home">
+  <div class="hero-backdrop">
+    <img
+      class="hero-image"
+      [src]="heroImageSrc()"
+      width="1440"
+      height="900"
+      [alt]="heroImageAlt()"
+      fetchpriority="high"
+      decoding="async"
+    />
+  </div>
+
+  <div class="hero-copy">
+    <p
+      class="eyebrow"
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'hero.eyebrow')"
+    >{{ hero().eyebrow }}</p>
+    <h1
+      class="brand-hero-title"
+      lang="en"
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'hero.title')"
+    >{{ hero().title }}</h1>
+    <h2
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'hero.subtitle')"
+    >{{ hero().subtitle }}</h2>
+    @if (isInlineEditing()) {
+      <p
+        class="hero-description inline-live-edit"
+        contenteditable="plaintext-only"
+        (blur)="onInlineEdit($event, 'hero.description')"
+      >{{ hero().description }}</p>
+    } @else {
+      <p class="hero-description" [innerHTML]="heroDescriptionHtml()"></p>
+    }
+
+    <div class="hero-actions">
+      <a class="button button-primary" [attr.href]="isInlineEditing() ? null : '#contact'" (click)="onPrimaryAction($event)">
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'landing.rsvpNowLabel')"
+        >{{ rsvpNowLabel() }}</span>
+      </a>
+      <a class="button button-secondary" [attr.href]="isInlineEditing() ? null : '#essentials'" (click)="onSecondaryAction($event)">
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'landing.viewDetailsLabel')"
+        >{{ viewDetailsLabel() }}</span>
+      </a>
+    </div>
+
+    <div class="hero-stats">
+      @for (stat of hero().stats; track stat.label; let i = $index) {
+        <article>
+          <strong
+            [class.inline-live-edit]="isInlineEditing()"
+            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+            (blur)="onInlineEdit($event, 'hero.stats.' + i + '.value')"
+          >{{ stat.value }}</strong>
+          <span
+            [class.inline-live-edit]="isInlineEditing()"
+            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+            (blur)="onInlineEdit($event, 'hero.stats.' + i + '.label')"
+          >{{ stat.label }}</span>
+        </article>
+      }
+    </div>
+  </div>
+</section>

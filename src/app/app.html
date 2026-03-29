@@ -4,287 +4,357 @@
   [class.lang-ka]="currentLanguage() === 'ka'"
   [class.lang-en]="currentLanguage() === 'en'"
 >
+  @if (isAdminAuthenticated() && isAdminEditing()) {
+    <div class="admin-edit-bar" role="status">
+      <span>Admin edit mode</span>
+      @if (hasUnsavedAdminChanges()) {
+        <span class="admin-user-pill">Unsaved changes</span>
+      }
+      <button type="button" class="button button-ghost" (click)="openAdminManager('profile')">Profile</button>
+      <button type="button" class="button button-ghost" (click)="openAdminManager('users')">Users</button>
+      <button type="button" class="button button-ghost" (click)="saveAdminEdits()">Save changes</button>
+      <button type="button" class="button button-ghost" (click)="logoutAdmin()">Logout</button>
+    </div>
+  }
+
   <a class="skip-link" href="#main-content">Skip to main content</a>
 
-  <header class="site-header">
-    <a class="brand-mark" href="#home">
-      <span class="brand-kicker">{{ headingText(content().siteTagline) }}</span>
-      <span class="brand-name" lang="en">{{ content().brandName }}</span>
-    </a>
-
-    <nav class="site-nav" aria-label="Primary">
-      @for (item of primaryNavItems(); track item.label) {
-        <a [href]="item.href">{{ headingText(item.label) }}</a>
-      }
-    </nav>
-
-    <div class="header-actions">
-      <div class="language-toggle" aria-label="Language switcher">
-        <button
-          type="button"
-          [class.active]="currentLanguage() === 'en'"
-          (click)="setLanguage('en')"
-        >
-          EN
-        </button>
-        <button
-          type="button"
-          [class.active]="currentLanguage() === 'ka'"
-          (click)="setLanguage('ka')"
-        >
-          KA
-        </button>
-      </div>
-
-      <a class="header-cta" href="#contact" (click)="onCtaClick('header')">{{ rsvpNowLabel() }}</a>
-    </div>
-  </header>
+  <app-header
+    [currentLanguage]="currentLanguage()"
+    [siteTagline]="content().siteTagline"
+    [brandName]="content().brandName"
+    [navItems]="primaryNavItems()"
+    [rsvpNowLabel]="rsvpNowLabel()"
+    (languageChange)="setLanguage($event)"
+    (ctaClick)="onCtaClick($event)"
+  />
 
   <main id="main-content">
-    <section class="hero-section" id="home">
-      <div class="hero-backdrop">
-        <img
-          class="hero-image"
-          src="/assets/images/L2D100242.JPG"
-          width="1440"
-          height="900"
-          alt="Wedding couple and guests during golden-hour ceremony"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </div>
-
-      <div class="hero-copy">
-        <p class="eyebrow">{{ headingText(content().hero.eyebrow) }}</p>
-        <h1 class="brand-hero-title" lang="en">{{ content().hero.title }}</h1>
-        <h2>{{ headingText(content().hero.subtitle) }}</h2>
-        <p class="hero-description" [innerHTML]="heroDescriptionHtml()"></p>
-
-        <div class="hero-actions">
-          <a class="button button-primary" href="#contact" (click)="onCtaClick('hero-primary')">{{ rsvpNowLabel() }}</a>
-          <a class="button button-secondary" href="#essentials" (click)="onCtaClick('hero-secondary')">{{ viewDetailsLabel() }}</a>
+    <div class="admin-section-wrap">
+      @if (isAdminAuthenticated() && isAdminEditing()) {
+        <div class="admin-chip-actions">
+          <button type="button" class="admin-edit-chip" [class.active]="activeInlineEditor() === 'hero'" (click)="editHeroSection()">Edit hero</button>
+          <button type="button" class="admin-save-chip" (click)="saveAdminEdits()">Save</button>
         </div>
+      }
+      <app-hero-section
+        [hero]="content().hero"
+        [heroDescriptionHtml]="heroDescriptionHtml()"
+        [heroImageSrc]="heroImageSrc()"
+        [heroImageAlt]="heroImageAlt()"
+        [rsvpNowLabel]="rsvpNowLabel()"
+        [viewDetailsLabel]="viewDetailsLabel()"
+        [isInlineEditing]="activeInlineEditor() === 'hero'"
+        (inlineEdit)="updateInlineText($event.path, $event.value)"
+        (ctaClick)="onCtaClick($event)"
+      />
+    </div>
 
-        <div class="hero-stats">
-          @for (stat of content().hero.stats; track stat.label) {
-            <article>
-              <strong>{{ stat.value }}</strong>
-              <span>{{ headingText(stat.label) }}</span>
-            </article>
-          }
+    <div class="admin-section-wrap">
+      @if (isAdminAuthenticated() && isAdminEditing()) {
+        <div class="admin-chip-actions">
+          <button type="button" class="admin-edit-chip" [class.active]="activeInlineEditor() === 'essentials'" (click)="editEssentialsSection()">Edit essentials</button>
+          <button type="button" class="admin-save-chip" (click)="saveAdminEdits()">Save</button>
         </div>
-      </div>
-    </section>
+      }
+      <app-essentials-section
+        [eventInfoEyebrow]="eventInfoEyebrow()"
+        [eventEssentialsTitle]="eventEssentialsTitle()"
+        [eventEssentialsDescription]="eventEssentialsDescription()"
+        [eventEssentials]="eventEssentials()"
+        [eventTimelineTitle]="eventTimelineTitle()"
+        [eventTimeline]="eventTimeline()"
+        [openMapLabel]="openMapLabel()"
+        [isInlineEditing]="activeInlineEditor() === 'essentials'"
+        (inlineEdit)="updateInlineText($event.path, $event.value)"
+        (openMapClick)="openMap()"
+      />
+    </div>
 
-    <section class="section essentials-section" id="essentials">
-      <div class="section-heading">
-        <p class="eyebrow">{{ eventInfoEyebrow() }}</p>
-        <h2>{{ eventEssentialsTitle() }}</h2>
-        <p>{{ eventEssentialsDescription() }}</p>
-      </div>
-
-      <div class="essentials-grid">
-        @for (item of eventEssentials(); track item.label) {
-          <article class="essential-card">
-            <h3>{{ item.label }}</h3>
-            <p>{{ item.value }}</p>
-          </article>
-        }
-      </div>
-
-      <div class="timeline-card">
-        <h3>{{ eventTimelineTitle() }}</h3>
-        <ul>
-          @for (slot of eventTimeline(); track slot) {
-            <li>{{ slot }}</li>
-          }
-        </ul>
-        <button class="button button-secondary" type="button" (click)="openMap()">
-          {{ openMapLabel() }}
-        </button>
-      </div>
-    </section>
-
-    <section class="section about-section" id="about">
-      <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().about.eyebrow) }}</p>
-        <h2>{{ headingText(content().about.title) }}</h2>
-      </div>
-
-      <div class="about-grid">
-        <div class="about-copy">
-          @for (paragraph of content().about.paragraphs; track paragraph) {
-            <p>{{ paragraph }}</p>
-          }
-          <a class="button button-primary" href="#contact" (click)="onCtaClick('about')">RSVP now</a>
+    <div class="admin-section-wrap">
+      @if (isAdminAuthenticated() && isAdminEditing()) {
+        <div class="admin-chip-actions">
+          <button type="button" class="admin-edit-chip" [class.active]="activeInlineEditor() === 'about'" (click)="editAboutSection()">Edit about</button>
+          <button type="button" class="admin-save-chip" (click)="saveAdminEdits()">Save</button>
         </div>
+      }
+      <app-about-section
+        [about]="content().about"
+        [rsvpNowLabel]="rsvpNowLabel()"
+        [isInlineEditing]="activeInlineEditor() === 'about'"
+        (inlineEdit)="updateInlineText($event.path, $event.value)"
+        (ctaClick)="onCtaClick($event)"
+      />
+    </div>
 
-        <aside class="difference-card">
-          <p class="card-kicker">{{ headingText(content().about.cardTitle) }}</p>
-          <ul>
-            @for (item of content().about.differentiators; track item) {
-              <li>{{ item }}</li>
-            }
-          </ul>
-        </aside>
-      </div>
-    </section>
+    <div class="admin-section-wrap">
+      @if (isAdminAuthenticated() && isAdminEditing()) {
+        <div class="admin-chip-actions">
+          <button type="button" class="admin-edit-chip" [class.active]="activeInlineEditor() === 'gallery'" (click)="editGallerySection()">Edit gallery</button>
+          <button type="button" class="admin-save-chip" (click)="saveAdminEdits()">Save</button>
+        </div>
+      }
+      <app-gallery-section
+        [galleryEyebrow]="galleryEyebrow()"
+        [galleryTitle]="galleryTitle()"
+        [galleryPhotos]="galleryPhotos()"
+        [isInlineEditing]="activeInlineEditor() === 'gallery'"
+        (inlineEdit)="updateInlineText($event.path, $event.value)"
+      />
+    </div>
 
-    <section class="section gallery-section" id="portfolio">
-      <div class="section-heading">
-        <p class="eyebrow">{{ galleryEyebrow() }}</p>
-        <h2>{{ galleryTitle() }}</h2>
-      </div>
-      <div class="gallery-grid">
-        @for (photo of galleryPhotos(); track photo.src) {
-          <figure class="gallery-card">
-            <img
-              [src]="photo.src"
-              [alt]="photo.alt"
-              loading="lazy"
-              decoding="async"
-              width="900"
-              height="600"
-            />
-          </figure>
-        }
-      </div>
-    </section>
+    <div class="admin-section-wrap">
+      @if (isAdminAuthenticated() && isAdminEditing()) {
+        <div class="admin-chip-actions">
+          <button type="button" class="admin-edit-chip" [class.active]="activeInlineEditor() === 'faq'" (click)="editFaqSection()">Edit FAQ</button>
+          <button type="button" class="admin-save-chip" (click)="saveAdminEdits()">Save</button>
+        </div>
+      }
+      <app-faq-section
+        [faq]="content().faq"
+        [isInlineEditing]="activeInlineEditor() === 'faq'"
+        (inlineEdit)="updateInlineText($event.path, $event.value)"
+      />
+    </div>
 
-    <section class="section faq-section" id="faq">
-      <div class="section-heading">
-        <p class="eyebrow">{{ headingText(content().faq.eyebrow) }}</p>
-        <h2>{{ headingText(content().faq.title) }}</h2>
-      </div>
-
-      <div class="faq-list">
-        @for (question of content().faq.items; track question) {
-          <details>
-            <summary>{{ headingText(question) }}</summary>
-            <p>{{ content().faq.answer }}</p>
-          </details>
-        }
-      </div>
-    </section>
-
-    <section class="section contact-section" id="contact">
-      <div class="section-heading">
-        <p class="eyebrow">{{ contactEyebrow() }}</p>
-        <h2>{{ contactTitle() }}</h2>
-        <p>{{ contactDescription() }}</p>
-      </div>
-
-      <div class="contact-layout">
-        <form class="contact-form" (submit)="$event.preventDefault()" (focusin)="onRsvpFormInteraction()">
-          <label>
-            <span>{{ headingText(content().contact.labels.name) }}</span>
-            <input #nameInput type="text" [placeholder]="content().contact.placeholders.name" autocomplete="name" />
-          </label>
-          <label>
-            <span>{{ headingText(content().contact.labels.email) }}</span>
-            <input #emailInput type="email" [placeholder]="content().contact.placeholders.email" autocomplete="email" />
-          </label>
-          <label>
-            <span>{{ headingText(content().contact.labels.phone) }}</span>
-            <input #phoneInput type="tel" [placeholder]="content().contact.placeholders.phone" autocomplete="tel" />
-          </label>
-          <label>
-            <span>{{ headingText(content().contact.labels.date) }}</span>
-            <input #dateInput type="date" />
-          </label>
-          <label>
-            <span>{{ headingText(content().contact.labels.guests) }}</span>
-            <input #guestsInput type="number" [placeholder]="content().contact.placeholders.guests" min="1" />
-          </label>
-          <label>
-            <span>{{ plusOneLabel() }}</span>
-            <select #plusOneInput>
-              @for (option of plusOneOptions(); track option.value) {
-                <option [value]="option.value">{{ option.label }}</option>
-              }
-            </select>
-          </label>
-          <label class="full-width">
-            <span>{{ dietaryLabel() }}</span>
-            <input #dietaryInput type="text" [placeholder]="dietaryLabel()" />
-          </label>
-          <label class="full-width">
-            <span>{{ headingText(content().contact.labels.message) }}</span>
-            <textarea
-              #messageInput
-              rows="4"
-              [placeholder]="content().contact.placeholders.message"
-            ></textarea>
-          </label>
-
-          <div class="form-actions full-width">
-            <button
-              class="button button-primary"
-              type="button"
-              (click)="sendInquiryByEmail({
-                name: nameInput.value,
-                email: emailInput.value,
-                phone: phoneInput.value,
-                date: dateInput.value,
-                guests: guestsInput.value,
-                plusOne: plusOneInput.value,
-                dietary: dietaryInput.value,
-                message: messageInput.value
-              })"
-            >
-              {{ sendByEmailLabel() }}
-            </button>
-            <button
-              class="button button-secondary"
-              type="button"
-              (click)="sendInquiryByWhatsApp({
-                name: nameInput.value,
-                email: emailInput.value,
-                phone: phoneInput.value,
-                date: dateInput.value,
-                guests: guestsInput.value,
-                plusOne: plusOneInput.value,
-                dietary: dietaryInput.value,
-                message: messageInput.value
-              })"
-            >
-              {{ sendByWhatsappLabel() }}
-            </button>
-          </div>
-
-          @if (inquiryConfirmation()) {
-            <p class="form-confirmation full-width" role="status" aria-live="polite">
-              {{ inquiryConfirmation() }}
-            </p>
-          }
-        </form>
-
-        <aside class="contact-card">
-          <p class="card-kicker">{{ quickContactLabel() }}</p>
-          <ul>
-            <li><strong>Email:</strong> Eliteweddingsandeventsco1@gmail.com</li>
-            <li><strong>WhatsApp:</strong> +995 595 930 899</li>
-            <li>{{ responseTimeLabel() }}</li>
-          </ul>
-
-          <div class="form-actions">
-            <a class="button button-ghost" [href]="whatsAppDirectLink()" target="_blank" rel="noopener noreferrer" (click)="onCtaClick('contact-whatsapp')">{{ openWhatsappLabel() }}</a>
-          </div>
-        </aside>
-      </div>
-    </section>
+    <div class="admin-section-wrap">
+      @if (isAdminAuthenticated() && isAdminEditing()) {
+        <div class="admin-chip-actions">
+          <button type="button" class="admin-edit-chip" [class.active]="activeInlineEditor() === 'contact'" (click)="editContactSection()">Edit contact</button>
+          <button type="button" class="admin-save-chip" (click)="saveAdminEdits()">Save</button>
+        </div>
+      }
+      <app-contact-section
+        [contact]="content().contact"
+        [contactEyebrow]="contactEyebrow()"
+        [contactTitle]="contactTitle()"
+        [contactDescription]="contactDescription()"
+        [plusOneLabel]="plusOneLabel()"
+        [plusOneOptions]="plusOneOptions()"
+        [dietaryLabel]="dietaryLabel()"
+        [sendByEmailLabel]="sendByEmailLabel()"
+        [sendByWhatsappLabel]="sendByWhatsappLabel()"
+        [quickContactLabel]="quickContactLabel()"
+        [responseTimeLabel]="responseTimeLabel()"
+        [openWhatsappLabel]="openWhatsappLabel()"
+        [whatsAppDirectLink]="whatsAppDirectLink()"
+        [contactEmail]="contactEmail()"
+        [contactWhatsApp]="contactWhatsApp()"
+        [inquiryConfirmation]="inquiryConfirmation()"
+        [isInlineEditing]="activeInlineEditor() === 'contact'"
+        (inlineEdit)="updateInlineText($event.path, $event.value)"
+        (emailSubmit)="sendInquiryByEmail($event)"
+        (whatsappSubmit)="sendInquiryByWhatsApp($event)"
+        (formInteraction)="onRsvpFormInteraction()"
+        (ctaClick)="onCtaClick($event)"
+      />
+    </div>
   </main>
 
-  <footer class="site-footer" id="footer">
-    <div class="footer-copy">
-      <p class="eyebrow">Elite Weddings & Events Co.</p>
-      <h2>{{ footerTitle() }}</h2>
-      <a class="button button-primary" href="#contact" (click)="onCtaClick('footer')">{{ rsvpNowLabel() }}</a>
-    </div>
-  </footer>
-
-  <div class="mobile-sticky-cta" aria-label="Quick actions">
-    <a class="button button-primary" href="#contact" (click)="onCtaClick('sticky-rsvp')">{{ rsvpNowLabel() }}</a>
-    <a class="button button-secondary" [href]="whatsAppDirectLink()" target="_blank" rel="noopener noreferrer" (click)="onCtaClick('sticky-whatsapp')">{{ openWhatsappLabel() }}</a>
+  <div class="admin-section-wrap">
+    @if (isAdminAuthenticated() && isAdminEditing()) {
+      <div class="admin-chip-actions">
+        <button type="button" class="admin-edit-chip" [class.active]="activeInlineEditor() === 'footer'" (click)="editFooterSection()">Edit footer</button>
+        <button type="button" class="admin-save-chip" (click)="saveAdminEdits()">Save</button>
+      </div>
+    }
+    <app-footer-section
+      [footerTitle]="footerTitle()"
+      [rsvpNowLabel]="rsvpNowLabel()"
+      [isInlineEditing]="activeInlineEditor() === 'footer'"
+      (inlineEdit)="updateInlineText($event.path, $event.value)"
+      (ctaClick)="onCtaClick($event)"
+    />
   </div>
+
+  <app-sticky-cta
+    [rsvpNowLabel]="rsvpNowLabel()"
+    [openWhatsappLabel]="openWhatsappLabel()"
+    [whatsAppDirectLink]="whatsAppDirectLink()"
+    (ctaClick)="onCtaClick($event)"
+  />
+
+  @if (isAdminModalOpen()) {
+    <div class="admin-auth-modal-backdrop" (click)="closeAdminModal()"></div>
+    <section class="admin-auth-modal" role="dialog" aria-modal="true" aria-label="Admin login">
+      <h3>Admin access</h3>
+      @if (!isMfaStep()) {
+        <label>
+          Email
+          <input #adminEmail type="email" placeholder="admin@eliteweddings.local" />
+        </label>
+        <label>
+          Password
+          <input #adminPassword type="password" placeholder="********" />
+        </label>
+        <button type="button" class="button button-primary" (click)="loginAsAdmin(adminEmail.value, adminPassword.value)">
+          Continue
+        </button>
+      } @else {
+        <label>
+          Authenticator code
+          <input #adminMfaCode type="text" placeholder="6-digit code" />
+        </label>
+        <button type="button" class="button button-primary" (click)="verifyAdminMfa(adminMfaCode.value)">
+          Verify
+        </button>
+      }
+
+      @if (adminAuthMessage()) {
+        <p class="admin-auth-message">{{ adminAuthMessage() }}</p>
+      }
+      <button type="button" class="button button-ghost" (click)="closeAdminModal()">Cancel</button>
+    </section>
+  }
+
+  @if (isAdminManagerOpen()) {
+    <div class="admin-auth-modal-backdrop" (click)="closeAdminManager()"></div>
+    <section class="admin-manager-modal" role="dialog" aria-modal="true" aria-label="Admin manager">
+      <div class="admin-manager-tabs">
+        <button
+          type="button"
+          class="button button-ghost"
+          [class.active]="adminManagerTab() === 'profile'"
+          (click)="adminManagerTab.set('profile')"
+        >
+          Profile
+        </button>
+        <button
+          type="button"
+          class="button button-ghost"
+          [class.active]="adminManagerTab() === 'users'"
+          (click)="adminManagerTab.set('users')"
+        >
+          Users
+        </button>
+      </div>
+
+      @if (adminManagerTab() === 'profile') {
+        <h3>Profile settings</h3>
+        <p class="admin-auth-message">Signed in as: <strong>{{ adminProfile()?.email || 'loading...' }}</strong></p>
+        <label>
+          Current password
+          <input #profileOldPassword type="password" placeholder="Enter your current password" />
+        </label>
+        <label>
+          New password (optional)
+          <input #profilePassword type="password" placeholder="At least 8 characters" />
+        </label>
+        <div class="admin-manager-actions">
+          <button type="button" class="button button-primary" (click)="saveAdminProfile(profileOldPassword.value, profilePassword.value)">
+            Save profile
+          </button>
+          <button type="button" class="button button-secondary" (click)="setupAdminMfa()">
+            Setup authenticator
+          </button>
+        </div>
+        @if (mfaSetup()) {
+          <article class="admin-user-card">
+            <p><strong>Authenticator configured</strong></p>
+            <label>
+              OTP URL
+              <textarea rows="3" readonly>{{ mfaSetup()?.otpauthUrl }}</textarea>
+            </label>
+            <label>
+              Recovery codes
+              <textarea rows="3" readonly>{{ (mfaSetup()?.recoveryCodes || []).join(', ') }}</textarea>
+            </label>
+            <div class="admin-manager-actions">
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="copyText(mfaSetup()?.otpauthUrl || '', 'OTP URL copied.')"
+              >
+                Copy OTP URL
+              </button>
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="copyText((mfaSetup()?.recoveryCodes || []).join(', '), 'Recovery codes copied.')"
+              >
+                Copy recovery codes
+              </button>
+            </div>
+          </article>
+        }
+      }
+
+      @if (adminManagerTab() === 'users') {
+        <h3>User management</h3>
+        <p class="admin-auth-message">Total users: {{ filteredAdminUsers().length }}</p>
+        <label>
+          Search users
+          <input #usersFilter type="text" [value]="adminUsersFilter()" (input)="adminUsersFilter.set(usersFilter.value)" placeholder="Filter by email..." />
+        </label>
+        <label>
+          New user email
+          <input #newUserEmail type="email" placeholder="user@example.com" />
+        </label>
+        <label>
+          New user password
+          <input #newUserPassword type="password" placeholder="At least 8 characters" />
+        </label>
+        <button type="button" class="button button-primary" (click)="createAdminUser(newUserEmail.value, newUserPassword.value)">
+          Add user
+        </button>
+        <button type="button" class="button button-ghost" (click)="refreshAdminUsers()">
+          Refresh list
+        </button>
+
+        <div class="admin-users-list">
+          @if (filteredAdminUsers().length === 0) {
+            <p class="admin-auth-message">No users found.</p>
+          } @else {
+            @for (user of filteredAdminUsers(); track user.id) {
+              <article class="admin-user-card">
+                <p>
+                  <strong>{{ user.email }}</strong>
+                  @if (adminProfile()?.id === user.id) {
+                    <span class="admin-user-pill">You</span>
+                  }
+                </p>
+                <p>MFA: {{ user.mfaEnabled ? 'Enabled' : 'Disabled' }}</p>
+                <p>Created: {{ formatAdminDate(user.createdAt) }}</p>
+                <label>
+                  Edit email
+                  <input #editEmail type="email" [value]="user.email" />
+                </label>
+                <label>
+                  New password (optional)
+                  <input #editPassword type="password" placeholder="Leave blank to keep current" />
+                </label>
+                <label class="admin-inline-check">
+                  <input #disableMfa type="checkbox" />
+                  Disable MFA for this user
+                </label>
+                <div class="admin-manager-actions">
+                  <button
+                    type="button"
+                    class="button button-secondary"
+                    (click)="updateAdminUser(user.id, editEmail.value, editPassword.value, disableMfa.checked)"
+                  >
+                    Save user
+                  </button>
+                  <button
+                    type="button"
+                    class="button button-ghost"
+                    [disabled]="adminProfile()?.id === user.id"
+                    (click)="confirmDeleteAdminUser(user.id, user.email)"
+                  >
+                    Delete user
+                  </button>
+                </div>
+              </article>
+            }
+          }
+        </div>
+      }
+
+      @if (adminManagerMessage()) {
+        <p class="admin-auth-message">{{ adminManagerMessage() }}</p>
+      }
+
+      <button type="button" class="button button-ghost" (click)="closeAdminManager()">Close</button>
+    </section>
+  }
 </div>

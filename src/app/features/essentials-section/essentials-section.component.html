@@ -1,0 +1,57 @@
+<section class="section essentials-section" id="essentials">
+  <div class="section-heading">
+    <p
+      class="eyebrow"
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'landing.eventInfoEyebrow')"
+    >{{ eventInfoEyebrow() }}</p>
+    <h2
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'landing.eventEssentialsTitle')"
+    >{{ eventEssentialsTitle() }}</h2>
+    <p
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'landing.eventEssentialsDescription')"
+    >{{ eventEssentialsDescription() }}</p>
+  </div>
+
+  <div class="essentials-grid">
+    @for (item of eventEssentials(); track item.label; let i = $index) {
+      <article class="essential-card">
+        <h3
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'landing.eventEssentials.' + i + '.label')"
+        >{{ item.label }}</h3>
+        <p
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'landing.eventEssentials.' + i + '.value')"
+        >{{ item.value }}</p>
+      </article>
+    }
+  </div>
+
+  <div class="timeline-card">
+    <h3>{{ eventTimelineTitle() }}</h3>
+    <ul>
+      @for (slot of eventTimeline(); track slot; let i = $index) {
+        <li
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'landing.eventTimeline.' + i)"
+        >{{ slot }}</li>
+      }
+    </ul>
+    <button class="button button-secondary" type="button" (click)="onOpenMapClick()">
+      <span
+        [class.inline-live-edit]="isInlineEditing()"
+        [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+        (blur)="onInlineEdit($event, 'landing.openMapLabel')"
+      >{{ openMapLabel() }}</span>
+    </button>
+  </div>
+</section>

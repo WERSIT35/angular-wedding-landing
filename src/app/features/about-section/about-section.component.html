@@ -1,0 +1,52 @@
+<section class="section about-section" id="about">
+  <div class="section-heading">
+    <p
+      class="eyebrow"
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'about.eyebrow')"
+    >{{ about().eyebrow }}</p>
+    <h2
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'about.title')"
+    >{{ about().title }}</h2>
+  </div>
+
+  <div class="about-grid">
+    <div class="about-copy">
+      @for (paragraph of about().paragraphs; track paragraph; let i = $index) {
+        <p
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'about.paragraphs.' + i)"
+        >{{ paragraph }}</p>
+      }
+      <a class="button button-primary" [attr.href]="isInlineEditing() ? null : '#contact'" (click)="onAboutAction($event)">
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'landing.rsvpNowLabel')"
+        >{{ rsvpNowLabel() }}</span>
+      </a>
+    </div>
+
+    <aside class="difference-card">
+      <p
+        class="card-kicker"
+        [class.inline-live-edit]="isInlineEditing()"
+        [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+        (blur)="onInlineEdit($event, 'about.cardTitle')"
+      >{{ about().cardTitle }}</p>
+      <ul>
+        @for (item of about().differentiators; track item; let i = $index) {
+          <li
+            [class.inline-live-edit]="isInlineEditing()"
+            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+            (blur)="onInlineEdit($event, 'about.differentiators.' + i)"
+          >{{ item }}</li>
+        }
+      </ul>
+    </aside>
+  </div>
+</section>

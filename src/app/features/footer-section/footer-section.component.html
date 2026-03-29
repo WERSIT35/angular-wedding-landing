@@ -1,0 +1,17 @@
+<footer class="site-footer" id="footer">
+  <div class="footer-copy">
+    <p class="eyebrow">Elite Weddings & Events Co.</p>
+    <h2
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'landing.footerTitle')"
+    >{{ footerTitle() }}</h2>
+    <a class="button button-primary" [attr.href]="isInlineEditing() ? null : '#contact'" (click)="onFooterAction($event)">
+      <span
+        [class.inline-live-edit]="isInlineEditing()"
+        [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+        (blur)="onInlineEdit($event, 'landing.rsvpNowLabel')"
+      >{{ rsvpNowLabel() }}</span>
+    </a>
+  </div>
+</footer>

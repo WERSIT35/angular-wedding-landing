@@ -1,0 +1,33 @@
+<header class="site-header">
+  <a class="brand-mark" href="#home">
+    <span class="brand-kicker">{{ siteTagline() }}</span>
+    <span class="brand-name" lang="en">{{ brandName() }}</span>
+  </a>
+
+  <nav class="site-nav" aria-label="Primary">
+    @for (item of navItems(); track item.label) {
+      <a [href]="item.href">{{ item.label }}</a>
+    }
+  </nav>
+
+  <div class="header-actions">
+    <div class="language-toggle" aria-label="Language switcher">
+      <button
+        type="button"
+        [class.active]="currentLanguage() === 'en'"
+        (click)="setLanguage('en')"
+      >
+        EN
+      </button>
+      <button
+        type="button"
+        [class.active]="currentLanguage() === 'ka'"
+        (click)="setLanguage('ka')"
+      >
+        KA
+      </button>
+    </div>
+
+    <a class="header-cta" href="#contact" (click)="onHeaderCtaClick()">{{ rsvpNowLabel() }}</a>
+  </div>
+</header>

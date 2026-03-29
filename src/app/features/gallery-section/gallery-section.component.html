@@ -1,0 +1,36 @@
+<section class="section gallery-section" id="portfolio">
+  <div class="section-heading">
+    <p
+      class="eyebrow"
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'landing.galleryEyebrow')"
+    >{{ galleryEyebrow() }}</p>
+    <h2
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'landing.galleryTitle')"
+    >{{ galleryTitle() }}</h2>
+  </div>
+
+  <div class="gallery-slider splide" #gallerySlider>
+    <div class="splide__track">
+      <ul class="splide__list">
+        @for (photo of galleryPhotos(); track photo.src) {
+          <li class="splide__slide">
+            <figure class="gallery-card">
+              <img
+                [src]="photo.src"
+                [alt]="photo.alt"
+                loading="lazy"
+                decoding="async"
+                width="900"
+                height="600"
+              />
+            </figure>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</section>

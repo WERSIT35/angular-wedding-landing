@@ -1,0 +1,32 @@
+<section class="section faq-section" id="faq">
+  <div class="section-heading">
+    <p
+      class="eyebrow"
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'faq.eyebrow')"
+    >{{ faq().eyebrow }}</p>
+    <h2
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'faq.title')"
+    >{{ faq().title }}</h2>
+  </div>
+
+  <div class="faq-list">
+    @for (question of faq().items; track question; let i = $index) {
+      <details>
+        <summary
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'faq.items.' + i)"
+        >{{ question }}</summary>
+        <p
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'faq.answer')"
+        >{{ faq().answer }}</p>
+      </details>
+    }
+  </div>
+</section>

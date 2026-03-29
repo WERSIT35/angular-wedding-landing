@@ -1,0 +1,12 @@
+<div class="mobile-sticky-cta" aria-label="Quick actions">
+  <a class="button button-primary" href="#contact" (click)="onStickyRsvpClick()">{{ rsvpNowLabel() }}</a>
+  <a
+    class="button button-secondary"
+    [href]="whatsAppDirectLink()"
+    target="_blank"
+    rel="noopener noreferrer"
+    (click)="onStickyWhatsappClick()"
+  >
+    {{ openWhatsappLabel() }}
+  </a>
+</div>

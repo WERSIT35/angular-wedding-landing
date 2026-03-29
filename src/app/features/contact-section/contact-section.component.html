@@ -1,0 +1,190 @@
+<section class="section contact-section" id="contact">
+  <div class="section-heading">
+    <p
+      class="eyebrow"
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'landing.contactEyebrow')"
+    >{{ contactEyebrow() }}</p>
+    <h2
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'landing.contactTitle')"
+    >{{ contactTitle() }}</h2>
+    <p
+      [class.inline-live-edit]="isInlineEditing()"
+      [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+      (blur)="onInlineEdit($event, 'landing.contactDescription')"
+    >{{ contactDescription() }}</p>
+  </div>
+
+  <div class="contact-layout">
+    <form class="contact-form" (submit)="$event.preventDefault()" (focusin)="onFormInteraction()">
+      <label>
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'contact.labels.name')"
+        >{{ contact().labels.name }}</span>
+        <input #nameInput type="text" [placeholder]="contact().placeholders.name" autocomplete="name" />
+      </label>
+      <label>
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'contact.labels.email')"
+        >{{ contact().labels.email }}</span>
+        <input #emailInput type="email" [placeholder]="contact().placeholders.email" autocomplete="email" />
+      </label>
+      <label>
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'contact.labels.phone')"
+        >{{ contact().labels.phone }}</span>
+        <input #phoneInput type="tel" [placeholder]="contact().placeholders.phone" autocomplete="tel" />
+      </label>
+      <label>
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'contact.labels.date')"
+        >{{ contact().labels.date }}</span>
+        <input #dateInput type="date" />
+      </label>
+      <label>
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'contact.labels.guests')"
+        >{{ contact().labels.guests }}</span>
+        <input #guestsInput type="number" [placeholder]="contact().placeholders.guests" min="1" />
+      </label>
+      <label>
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'landing.plusOneLabel')"
+        >{{ plusOneLabel() }}</span>
+        <select #plusOneInput>
+          @for (option of plusOneOptions(); track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+      <label class="full-width">
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'landing.dietaryLabel')"
+        >{{ dietaryLabel() }}</span>
+        <input #dietaryInput type="text" [placeholder]="dietaryLabel()" />
+      </label>
+      <label class="full-width">
+        <span
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'contact.labels.message')"
+        >{{ contact().labels.message }}</span>
+        <textarea #messageInput rows="4" [placeholder]="contact().placeholders.message"></textarea>
+      </label>
+
+      <div class="form-actions full-width">
+        <button
+          class="button button-primary"
+          type="button"
+          (click)="onEmailSubmit({
+            name: nameInput.value,
+            email: emailInput.value,
+            phone: phoneInput.value,
+            date: dateInput.value,
+            guests: guestsInput.value,
+            plusOne: plusOneInput.value,
+            dietary: dietaryInput.value,
+            message: messageInput.value
+          })"
+        >
+          <span
+            [class.inline-live-edit]="isInlineEditing()"
+            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+            (blur)="onInlineEdit($event, 'landing.sendByEmailLabel')"
+          >{{ sendByEmailLabel() }}</span>
+        </button>
+        <button
+          class="button button-secondary"
+          type="button"
+          (click)="onWhatsAppSubmit({
+            name: nameInput.value,
+            email: emailInput.value,
+            phone: phoneInput.value,
+            date: dateInput.value,
+            guests: guestsInput.value,
+            plusOne: plusOneInput.value,
+            dietary: dietaryInput.value,
+            message: messageInput.value
+          })"
+        >
+          <span
+            [class.inline-live-edit]="isInlineEditing()"
+            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+            (blur)="onInlineEdit($event, 'landing.sendByWhatsappLabel')"
+          >{{ sendByWhatsappLabel() }}</span>
+        </button>
+      </div>
+
+      @if (inquiryConfirmation()) {
+        <p class="form-confirmation full-width" role="status" aria-live="polite">
+          {{ inquiryConfirmation() }}
+        </p>
+      }
+    </form>
+
+    <aside class="contact-card">
+      <p
+        class="card-kicker"
+        [class.inline-live-edit]="isInlineEditing()"
+        [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+        (blur)="onInlineEdit($event, 'landing.quickContactLabel')"
+      >{{ quickContactLabel() }}</p>
+      <ul>
+        <li>
+          <strong>Email:</strong>
+          <span
+            [class.inline-live-edit]="isInlineEditing()"
+            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+            (blur)="onInlineEdit($event, 'contact.channels.email')"
+          >{{ contactEmail() }}</span>
+        </li>
+        <li>
+          <strong>WhatsApp:</strong>
+          <span
+            [class.inline-live-edit]="isInlineEditing()"
+            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+            (blur)="onInlineEdit($event, 'contact.channels.whatsapp')"
+          >{{ contactWhatsApp() }}</span>
+        </li>
+        <li
+          [class.inline-live-edit]="isInlineEditing()"
+          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+          (blur)="onInlineEdit($event, 'landing.responseTimeLabel')"
+        >{{ responseTimeLabel() }}</li>
+      </ul>
+
+      <div class="form-actions">
+        <a
+          class="button button-ghost"
+          [attr.href]="isInlineEditing() ? null : whatsAppDirectLink()"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="onContactWhatsappClick($event)"
+        >
+          <span
+            [class.inline-live-edit]="isInlineEditing()"
+            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
+            (blur)="onInlineEdit($event, 'landing.openWhatsappLabel')"
+          >{{ openWhatsappLabel() }}</span>
+        </a>
+      </div>
+    </aside>
+  </div>
+</section>

@@ -1,17 +1,11 @@
 import http from 'node:http';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { randomId, signToken, verifyPassword, verifyToken } from './lib/crypto.mjs';
+import { hashPassword, randomId, signToken, verifyPassword, verifyToken } from './lib/crypto.mjs';
 import { appendAuditLog, loadStore, saveStore } from './lib/store.mjs';
 import { generateRecoveryCodes, generateTotpSecret, getOtpAuthUrl, verifyTotp } from './lib/totp.mjs';
 
 const PORT = Number(process.env.PORT || 4000);
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:4200';
 const CORS_ORIGINS = new Set([FRONTEND_ORIGIN, 'http://localhost:5173', 'http://localhost:3000']);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ADMIN_DIR = path.resolve(__dirname, '../public/admin');
 const AUTH_RATE_LIMIT = {
   windowMs: 60_000,
   maxAttempts: 8
@@ -36,7 +30,7 @@ function sendJson(req, res, statusCode, payload) {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     Vary: 'Origin'
   });
   res.end(JSON.stringify(payload));
@@ -66,27 +60,6 @@ function getRequestBody(req) {
   });
 }
 
-function serveAdminAsset(req, res, pathname) {
-  const target = pathname === '/admin' || pathname === '/admin/'
-    ? path.join(ADMIN_DIR, 'index.html')
-    : path.join(ADMIN_DIR, pathname.replace('/admin/', ''));
-  const normalized = path.normalize(target);
-  if (!normalized.startsWith(ADMIN_DIR) || !fs.existsSync(normalized)) {
-    return false;
-  }
-
-  const ext = path.extname(normalized).toLowerCase();
-  const types = {
-    '.html': 'text/html; charset=utf-8',
-    '.css': 'text/css; charset=utf-8',
-    '.js': 'application/javascript; charset=utf-8'
-  };
-
-  res.writeHead(200, { 'Content-Type': types[ext] || 'application/octet-stream' });
-  res.end(fs.readFileSync(normalized));
-  return true;
-}
-
 function getAuthUser(req, store) {
   const authHeader = req.headers.authorization || '';
   if (!authHeader.startsWith('Bearer ')) {
@@ -112,6 +85,10 @@ function sanitizeUser(user) {
   };
 }
 
+function normalizeEmail(input) {
+  return String(input || '').trim().toLowerCase();
+}
+
 function withCors(req, res) {
   setSecurityHeaders(res);
   const origin = req.headers.origin;
@@ -121,7 +98,7 @@ function withCors(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Vary', 'Origin');
 }
 
@@ -150,16 +127,9 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
 
   try {
-    if (url.pathname === '/admin') {
-      res.writeHead(302, { Location: '/admin/' });
-      res.end();
+    if (url.pathname === '/admin' || url.pathname.startsWith('/admin/')) {
+      sendJson(req, res, 404, { error: 'Not found' });
       return;
-    }
-
-    if (req.method === 'GET' && url.pathname.startsWith('/admin')) {
-      if (serveAdminAsset(req, res, url.pathname)) {
-        return;
-      }
     }
 
     if (req.method === 'GET' && url.pathname === '/health') {
@@ -182,7 +152,7 @@ const server = http.createServer(async (req, res) => {
 
       const store = loadStore();
       const body = await getRequestBody(req);
-      const email = String(body.email || '').trim().toLowerCase();
+      const email = normalizeEmail(body.email);
       const password = String(body.password || '');
 
       const user = store.users.find((item) => item.email === email);
@@ -280,6 +250,219 @@ const server = http.createServer(async (req, res) => {
           secret
         })
       });
+      return;
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/admin/profile') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      sendJson(req, res, 200, { user: sanitizeUser(user) });
+      return;
+    }
+
+    if (req.method === 'PUT' && url.pathname === '/api/admin/profile') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      const body = await getRequestBody(req);
+      const nextEmail = normalizeEmail(body.email);
+      const nextPassword = String(body.password || '');
+      const oldPassword = String(body.oldPassword || '');
+
+      if (nextEmail) {
+        const emailInUse = store.users.some((item) => item.email === nextEmail && item.id !== user.id);
+        if (emailInUse) {
+          sendJson(req, res, 409, { error: 'Email already in use.' });
+          return;
+        }
+        user.email = nextEmail;
+      }
+
+      if (nextPassword) {
+        if (!oldPassword) {
+          sendJson(req, res, 400, { error: 'Current password is required to set a new password.' });
+          return;
+        }
+        const oldPasswordValid = verifyPassword(oldPassword, user.passwordSalt, user.passwordHash);
+        if (!oldPasswordValid) {
+          sendJson(req, res, 401, { error: 'Current password is incorrect.' });
+          return;
+        }
+        if (nextPassword.length < 8) {
+          sendJson(req, res, 400, { error: 'Password must be at least 8 characters.' });
+          return;
+        }
+        const { salt, hash } = hashPassword(nextPassword);
+        user.passwordSalt = salt;
+        user.passwordHash = hash;
+      }
+
+      saveStore(store);
+      appendAuditLog({ action: 'profile_update', userId: user.id, metadata: {} });
+      sendJson(req, res, 200, { user: sanitizeUser(user) });
+      return;
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/admin/users') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      sendJson(req, res, 200, { users: store.users.map((item) => sanitizeUser(item)) });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/admin/users') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      const body = await getRequestBody(req);
+      const email = normalizeEmail(body.email);
+      const password = String(body.password || '');
+      if (!email || !email.includes('@')) {
+        sendJson(req, res, 400, { error: 'Valid email is required.' });
+        return;
+      }
+      if (password.length < 8) {
+        sendJson(req, res, 400, { error: 'Password must be at least 8 characters.' });
+        return;
+      }
+      if (store.users.some((item) => item.email === email)) {
+        sendJson(req, res, 409, { error: 'User with this email already exists.' });
+        return;
+      }
+
+      const { salt, hash } = hashPassword(password);
+      const newUser = {
+        id: randomId(),
+        email,
+        passwordSalt: salt,
+        passwordHash: hash,
+        mfaEnabled: false,
+        mfaSecret: null,
+        recoveryCodes: [],
+        createdAt: new Date().toISOString()
+      };
+
+      store.users.push(newUser);
+      saveStore(store);
+      appendAuditLog({
+        action: 'user_create',
+        userId: user.id,
+        metadata: { createdUserId: newUser.id, email: newUser.email }
+      });
+      sendJson(req, res, 201, { user: sanitizeUser(newUser) });
+      return;
+    }
+
+    if (req.method === 'PUT' && url.pathname === '/api/admin/users') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      const body = await getRequestBody(req);
+      const targetId = String(body.id || '');
+      const targetUser = store.users.find((item) => item.id === targetId);
+      if (!targetUser) {
+        sendJson(req, res, 404, { error: 'User not found.' });
+        return;
+      }
+
+      const nextEmail = normalizeEmail(body.email);
+      const nextPassword = String(body.password || '');
+
+      if (nextEmail) {
+        const emailInUse = store.users.some((item) => item.email === nextEmail && item.id !== targetUser.id);
+        if (emailInUse) {
+          sendJson(req, res, 409, { error: 'Email already in use.' });
+          return;
+        }
+        targetUser.email = nextEmail;
+      }
+
+      if (nextPassword) {
+        if (nextPassword.length < 8) {
+          sendJson(req, res, 400, { error: 'Password must be at least 8 characters.' });
+          return;
+        }
+        const { salt, hash } = hashPassword(nextPassword);
+        targetUser.passwordSalt = salt;
+        targetUser.passwordHash = hash;
+      }
+
+      if (typeof body.mfaEnabled === 'boolean' && body.mfaEnabled === false) {
+        targetUser.mfaEnabled = false;
+        targetUser.mfaSecret = null;
+        targetUser.recoveryCodes = [];
+      }
+
+      saveStore(store);
+      appendAuditLog({
+        action: 'user_update',
+        userId: user.id,
+        metadata: { targetUserId: targetUser.id }
+      });
+      sendJson(req, res, 200, { user: sanitizeUser(targetUser) });
+      return;
+    }
+
+    if (req.method === 'DELETE' && url.pathname === '/api/admin/users') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      const targetId = String(url.searchParams.get('id') || '');
+      if (!targetId) {
+        sendJson(req, res, 400, { error: 'User id is required.' });
+        return;
+      }
+
+      if (targetId === user.id) {
+        sendJson(req, res, 400, { error: 'You cannot delete your own active account.' });
+        return;
+      }
+
+      if (store.users.length <= 1) {
+        sendJson(req, res, 400, { error: 'Cannot delete the last admin user.' });
+        return;
+      }
+
+      const index = store.users.findIndex((item) => item.id === targetId);
+      if (index < 0) {
+        sendJson(req, res, 404, { error: 'User not found.' });
+        return;
+      }
+
+      const [removed] = store.users.splice(index, 1);
+      saveStore(store);
+      appendAuditLog({
+        action: 'user_delete',
+        userId: user.id,
+        metadata: { targetUserId: targetId, targetEmail: removed.email }
+      });
+      sendJson(req, res, 200, { ok: true });
       return;
     }
 
