@@ -80,12 +80,17 @@
   @if (wizardOpen()) {
     <div class="wedding-wizard-backdrop" (click)="closeWizard()"></div>
     <section class="wedding-wizard-modal" role="dialog" aria-modal="true" aria-label="Wedding planner wizard">
-      <header class="wedding-wizard-head">
-        <p class="question-kicker">Wedding planner</p>
-        <strong>{{ progressPercent() }}%</strong>
-      </header>
-      <div class="wizard-progress">
-        <span [style.width.%]="progressPercent()"></span>
+      <div class="wizard-top">
+        <header class="wedding-wizard-head">
+          <p class="question-kicker">Wedding planner</p>
+          <div class="wizard-head-actions">
+            <strong>{{ progressPercent() }}%</strong>
+            <button type="button" class="button button-ghost wizard-dismiss" (click)="closeWizard()">Close</button>
+          </div>
+        </header>
+        <div class="wizard-progress">
+          <span [style.width.%]="progressPercent()"></span>
+        </div>
       </div>
 
       @if (!wizardFinished()) {
@@ -175,6 +180,21 @@
           <p class="form-confirmation form-error" role="alert">{{ formError() }}</p>
         }
 
+        <input
+          type="text"
+          tabindex="-1"
+          autocomplete="off"
+          aria-hidden="true"
+          style="position:absolute;left:-9999px;opacity:0;pointer-events:none;"
+          [value]="honeypot()"
+          (input)="updateHoneypot($any($event.target).value)"
+        />
+        <input
+          type="hidden"
+          [value]="captchaToken()"
+          (input)="updateCaptchaToken($any($event.target).value)"
+        />
+
         <div class="wizard-actions">
           <button type="button" class="button button-ghost" [disabled]="!canGoBack()" (click)="previousStep()">Back</button>
           <button type="button" class="button button-primary" (click)="nextStep()">Next</button>
@@ -194,8 +214,6 @@
       @if (inquiryConfirmation()) {
         <p class="form-confirmation" role="status" aria-live="polite">{{ inquiryConfirmation() }}</p>
       }
-
-      <button type="button" class="button button-ghost wizard-close" (click)="closeWizard()">Close</button>
     </section>
   }
 </section>

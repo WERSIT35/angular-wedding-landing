@@ -1,4 +1,5 @@
 import http from 'node:http';
+import crypto from 'node:crypto';
 import { hashPassword, randomId, signToken, verifyPassword, verifyToken } from './lib/crypto.mjs';
 import { appendAuditLog, loadStore, saveStore } from './lib/store.mjs';
 import { generateRecoveryCodes, generateTotpSecret, getOtpAuthUrl, verifyTotp } from './lib/totp.mjs';
@@ -12,6 +13,50 @@ const AUTH_RATE_LIMIT = {
   maxAttempts: 8
 };
 const authAttempts = new Map();
+
+const INQUIRY_RATE_LIMIT = {
+  windowMs: 10 * 60_000,
+  maxAttempts: 5,
+  burstAttempts: 10,
+  burstBlockMs: 30 * 60_000
+};
+const INQUIRY_DEDUPE_WINDOW_MS = Number(process.env.INQUIRY_DEDUPE_WINDOW_MS || 20 * 60_000);
+const INQUIRY_MIN_FILL_TIME_MS = Number(process.env.INQUIRY_MIN_FILL_TIME_MS || 3_000);
+const INQUIRY_MAX_FILL_TIME_MS = Number(process.env.INQUIRY_MAX_FILL_TIME_MS || 6 * 60 * 60_000);
+const INQUIRY_DAILY_GLOBAL_CAP = Number(process.env.INQUIRY_DAILY_GLOBAL_CAP || 500);
+const INQUIRY_DAILY_IP_CAP = Number(process.env.INQUIRY_DAILY_IP_CAP || 30);
+const INQUIRY_DAILY_IDENTITY_CAP = Number(process.env.INQUIRY_DAILY_IDENTITY_CAP || 10);
+const INQUIRY_QUEUE_THROUGHPUT_MS = Number(process.env.INQUIRY_QUEUE_THROUGHPUT_MS || 1_000);
+const CAPTCHA_PROVIDER = String(process.env.CAPTCHA_PROVIDER || 'turnstile').toLowerCase();
+const CAPTCHA_SECRET =
+  process.env.CAPTCHA_SECRET_KEY
+  || process.env.TURNSTILE_SECRET_KEY
+  || process.env.RECAPTCHA_SECRET_KEY
+  || process.env.HCAPTCHA_SECRET_KEY
+  || '';
+const CAPTCHA_REQUIRED = String(process.env.CAPTCHA_REQUIRED || (CAPTCHA_SECRET ? 'true' : 'false')).toLowerCase() !== 'false';
+const SECURITY_ALERT_WEBHOOK_URL = process.env.SECURITY_ALERT_WEBHOOK_URL || '';
+const EDGE_SHARED_SECRET = process.env.EDGE_SHARED_SECRET || '';
+const SPIKE_ALERT_WINDOW_MS = Number(process.env.SPIKE_ALERT_WINDOW_MS || 5 * 60_000);
+const SPIKE_ALERT_THRESHOLD = Number(process.env.SPIKE_ALERT_THRESHOLD || 20);
+const SPIKE_ALERT_COOLDOWN_MS = Number(process.env.SPIKE_ALERT_COOLDOWN_MS || 15 * 60_000);
+const MFA_SETUP_TTL_MS = Number(process.env.MFA_SETUP_TTL_MS || 10 * 60_000);
+
+const inquiryIpAttempts = new Map();
+const inquiryIdentityAttempts = new Map();
+const inquiryDedupe = new Map();
+const inquiryQueue = [];
+let inquiryWorkerBusy = false;
+let inquirySequence = 0;
+let spikeAlertCooldownUntil = 0;
+const blockedEvents = [];
+const pendingMfaSetups = new Map();
+const dailyCounters = {
+  dayKey: '',
+  global: 0,
+  byIp: new Map(),
+  byIdentity: new Map()
+};
 
 function setSecurityHeaders(res) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -92,6 +137,238 @@ function normalizeEmail(input) {
 
 function normalizeText(input) {
   return String(input || '').trim();
+}
+
+function normalizePhone(input) {
+  return normalizeText(input).replace(/[^\d+]/g, '');
+}
+
+function hashText(value) {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function getClientIp(req) {
+  const cfIp = normalizeText(req.headers['cf-connecting-ip']);
+  if (cfIp) {
+    return cfIp;
+  }
+
+  const forwarded = normalizeText(req.headers['x-forwarded-for']);
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+
+  return req.socket.remoteAddress || 'unknown';
+}
+
+function getInquiryIdentityKey(inquiry) {
+  const email = normalizeEmail(inquiry.email);
+  const phone = normalizePhone(inquiry.phone);
+  return hashText(`${email}|${phone}`);
+}
+
+function getInquiryDedupeKey(inquiry) {
+  const payload = [
+    normalizeText(inquiry.name).toLowerCase(),
+    normalizeEmail(inquiry.email),
+    normalizePhone(inquiry.phone),
+    normalizeText(inquiry.message).toLowerCase(),
+    normalizeText(inquiry.date)
+  ].join('|');
+  return hashText(payload);
+}
+
+function evaluateSlidingWindowLimit(map, key, options) {
+  const now = Date.now();
+  const current = map.get(key) || { attempts: [], blockedUntil: 0 };
+
+  if (current.blockedUntil > now) {
+    return { allowed: false, retryAfterMs: current.blockedUntil - now, burstBlocked: true };
+  }
+
+  const attempts = current.attempts.filter((ts) => now - ts <= options.windowMs);
+  attempts.push(now);
+
+  if (attempts.length >= options.burstAttempts) {
+    current.attempts = attempts;
+    current.blockedUntil = now + options.burstBlockMs;
+    map.set(key, current);
+    return { allowed: false, retryAfterMs: options.burstBlockMs, burstBlocked: true };
+  }
+
+  if (attempts.length > options.maxAttempts) {
+    current.attempts = attempts;
+    current.blockedUntil = 0;
+    map.set(key, current);
+    const oldestRelevant = attempts[0];
+    const retryAfterMs = Math.max(1_000, options.windowMs - (now - oldestRelevant));
+    return { allowed: false, retryAfterMs, burstBlocked: false };
+  }
+
+  current.attempts = attempts;
+  current.blockedUntil = 0;
+  map.set(key, current);
+  return { allowed: true, retryAfterMs: 0, burstBlocked: false };
+}
+
+function getDayKey(now = Date.now()) {
+  return new Date(now).toISOString().slice(0, 10);
+}
+
+function ensureDailyCounters() {
+  const dayKey = getDayKey();
+  if (dailyCounters.dayKey === dayKey) {
+    return;
+  }
+
+  dailyCounters.dayKey = dayKey;
+  dailyCounters.global = 0;
+  dailyCounters.byIp.clear();
+  dailyCounters.byIdentity.clear();
+}
+
+function checkDailyCaps(ipKey, identityKey) {
+  ensureDailyCounters();
+
+  const ipCount = dailyCounters.byIp.get(ipKey) || 0;
+  if (ipCount >= INQUIRY_DAILY_IP_CAP) {
+    return { allowed: false, reason: 'ip_daily_cap' };
+  }
+
+  const identityCount = dailyCounters.byIdentity.get(identityKey) || 0;
+  if (identityCount >= INQUIRY_DAILY_IDENTITY_CAP) {
+    return { allowed: false, reason: 'identity_daily_cap' };
+  }
+
+  if (dailyCounters.global >= INQUIRY_DAILY_GLOBAL_CAP) {
+    return { allowed: false, reason: 'global_daily_cap' };
+  }
+
+  return { allowed: true, reason: null };
+}
+
+function incrementDailyCounters(ipKey, identityKey) {
+  ensureDailyCounters();
+  dailyCounters.global += 1;
+  dailyCounters.byIp.set(ipKey, (dailyCounters.byIp.get(ipKey) || 0) + 1);
+  dailyCounters.byIdentity.set(identityKey, (dailyCounters.byIdentity.get(identityKey) || 0) + 1);
+}
+
+function checkInquiryDuplicate(dedupeKey) {
+  const now = Date.now();
+  const seenAt = inquiryDedupe.get(dedupeKey);
+  if (!seenAt) {
+    return { duplicate: false, retryAfterMs: 0 };
+  }
+
+  const age = now - seenAt;
+  if (age > INQUIRY_DEDUPE_WINDOW_MS) {
+    inquiryDedupe.delete(dedupeKey);
+    return { duplicate: false, retryAfterMs: 0 };
+  }
+
+  return { duplicate: true, retryAfterMs: INQUIRY_DEDUPE_WINDOW_MS - age };
+}
+
+function markInquiryDuplicate(dedupeKey) {
+  inquiryDedupe.set(dedupeKey, Date.now());
+}
+
+function recordBlockedEvent(reason, details = {}) {
+  const now = Date.now();
+  blockedEvents.push(now);
+
+  while (blockedEvents.length > 0 && now - blockedEvents[0] > SPIKE_ALERT_WINDOW_MS) {
+    blockedEvents.shift();
+  }
+
+  if (blockedEvents.length < SPIKE_ALERT_THRESHOLD || now < spikeAlertCooldownUntil) {
+    return;
+  }
+
+  spikeAlertCooldownUntil = now + SPIKE_ALERT_COOLDOWN_MS;
+  void sendSecurityAlert(`[inquiry_abuse_spike] ${reason}`, {
+    reason,
+    blockedCount: blockedEvents.length,
+    windowMs: SPIKE_ALERT_WINDOW_MS,
+    ...details
+  });
+}
+
+async function sendSecurityAlert(message, metadata = {}) {
+  const payload = {
+    message,
+    metadata,
+    at: new Date().toISOString(),
+    service: 'elite-backend'
+  };
+
+  if (SECURITY_ALERT_WEBHOOK_URL) {
+    try {
+      const response = await fetch(SECURITY_ALERT_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        console.warn(`[security-alert] webhook failed with status ${response.status}`);
+      }
+      return;
+    } catch (error) {
+      console.warn(`[security-alert] webhook error: ${error instanceof Error ? error.message : 'unknown'}`);
+    }
+  }
+
+  console.warn('[security-alert]', payload);
+}
+
+async function verifyCaptchaToken(token, ip) {
+  if (!CAPTCHA_REQUIRED) {
+    return { ok: true, provider: 'disabled' };
+  }
+
+  if (!CAPTCHA_SECRET) {
+    return { ok: false, provider: CAPTCHA_PROVIDER, error: 'Captcha secret is not configured on server.' };
+  }
+
+  const safeToken = normalizeText(token);
+  if (!safeToken) {
+    return { ok: false, provider: CAPTCHA_PROVIDER, error: 'Captcha token is required.' };
+  }
+
+  let verifyUrl = '';
+  const body = new URLSearchParams();
+  body.set('secret', CAPTCHA_SECRET);
+  body.set('response', safeToken);
+  body.set('remoteip', ip);
+
+  if (CAPTCHA_PROVIDER === 'turnstile') {
+    verifyUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+  } else if (CAPTCHA_PROVIDER === 'recaptcha') {
+    verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+  } else if (CAPTCHA_PROVIDER === 'hcaptcha') {
+    verifyUrl = 'https://hcaptcha.com/siteverify';
+  } else {
+    return { ok: false, provider: CAPTCHA_PROVIDER, error: 'Unsupported CAPTCHA_PROVIDER.' };
+  }
+
+  try {
+    const response = await fetch(verifyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    const payload = await response.json().catch(() => ({}));
+    const success = Boolean(payload.success);
+
+    if (!response.ok || !success) {
+      return { ok: false, provider: CAPTCHA_PROVIDER, error: 'Captcha verification failed.' };
+    }
+
+    return { ok: true, provider: CAPTCHA_PROVIDER };
+  } catch {
+    return { ok: false, provider: CAPTCHA_PROVIDER, error: 'Captcha verification request failed.' };
+  }
 }
 
 function escapeHtml(value) {
@@ -291,6 +568,62 @@ async function deliverInquiry(payload) {
   return { provider: 'log-only' };
 }
 
+function enqueueInquiryDelivery(job) {
+  inquirySequence += 1;
+  const queueJob = {
+    id: `inq-${Date.now()}-${inquirySequence}`,
+    enqueuedAt: Date.now(),
+    ...job
+  };
+  inquiryQueue.push(queueJob);
+  return queueJob;
+}
+
+async function processInquiryQueueTick() {
+  if (inquiryWorkerBusy || inquiryQueue.length === 0) {
+    return;
+  }
+
+  const job = inquiryQueue.shift();
+  if (!job) {
+    return;
+  }
+
+  inquiryWorkerBusy = true;
+  try {
+    const delivery = await deliverInquiry(job.deliveryPayload);
+    appendAuditLog({
+      action: 'public_inquiry_delivered',
+      userId: 'public',
+      metadata: {
+        queueId: job.id,
+        provider: delivery.provider,
+        channel: job.metadata.channel,
+        email: job.metadata.email,
+        ipHash: job.metadata.ipHash,
+        identityHash: job.metadata.identityHash
+      }
+    });
+  } catch (error) {
+    appendAuditLog({
+      action: 'public_inquiry_delivery_failed',
+      userId: 'public',
+      metadata: {
+        queueId: job.id,
+        channel: job.metadata.channel,
+        email: job.metadata.email,
+        error: error instanceof Error ? error.message : 'Unknown delivery error'
+      }
+    });
+
+    recordBlockedEvent('inquiry_delivery_failed', {
+      queueId: job.id
+    });
+  } finally {
+    inquiryWorkerBusy = false;
+  }
+}
+
 function withCors(req, res) {
   setSecurityHeaders(res);
   const origin = req.headers.origin;
@@ -315,6 +648,48 @@ function checkRateLimit(key) {
   recent.push(now);
   authAttempts.set(key, recent);
   return true;
+}
+
+function sendTooManyRequests(req, res, error, retryAfterMs) {
+  const retryAfterSec = Math.max(1, Math.ceil(retryAfterMs / 1_000));
+  res.setHeader('Retry-After', String(retryAfterSec));
+  sendJson(req, res, 429, { error });
+}
+
+function cleanupInMemorySecurityState() {
+  const now = Date.now();
+
+  for (const [key, entry] of inquiryIpAttempts.entries()) {
+    const recent = entry.attempts.filter((ts) => now - ts <= INQUIRY_RATE_LIMIT.windowMs);
+    const blockedActive = entry.blockedUntil > now;
+    if (recent.length === 0 && !blockedActive) {
+      inquiryIpAttempts.delete(key);
+      continue;
+    }
+    entry.attempts = recent;
+  }
+
+  for (const [key, entry] of inquiryIdentityAttempts.entries()) {
+    const recent = entry.attempts.filter((ts) => now - ts <= INQUIRY_RATE_LIMIT.windowMs);
+    const blockedActive = entry.blockedUntil > now;
+    if (recent.length === 0 && !blockedActive) {
+      inquiryIdentityAttempts.delete(key);
+      continue;
+    }
+    entry.attempts = recent;
+  }
+
+  for (const [key, seenAt] of inquiryDedupe.entries()) {
+    if (now - seenAt > INQUIRY_DEDUPE_WINDOW_MS) {
+      inquiryDedupe.delete(key);
+    }
+  }
+
+  for (const [userId, setup] of pendingMfaSetups.entries()) {
+    if (setup.expiresAt <= now) {
+      pendingMfaSetups.delete(userId);
+    }
+  }
 }
 
 const server = http.createServer(async (req, res) => {
@@ -346,21 +721,53 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && url.pathname === '/api/public/inquiry') {
-      const ipKey = req.socket.remoteAddress || 'unknown';
-      if (!checkRateLimit(`inquiry:${ipKey}`)) {
-        sendJson(req, res, 429, { error: 'Too many attempts. Try again in a minute.' });
-        return;
-      }
-
       const body = await getRequestBody(req);
       const inquiry = body.inquiry && typeof body.inquiry === 'object' ? body.inquiry : null;
       const labels = body.labels && typeof body.labels === 'object' ? body.labels : null;
       const channel = normalizeText(body.channel).toLowerCase();
       const targetEmail = INQUIRY_TARGET_EMAIL;
       const targetWhatsApp = normalizeText(body.targetWhatsApp || '995595930899');
+      const captchaToken = normalizeText(body.captchaToken);
+      const honeypot = normalizeText(body.honeypot);
+      const formStartedAt = Number(body.formStartedAt || 0);
+      const ipKey = getClientIp(req);
 
       if (!inquiry || !labels) {
         sendJson(req, res, 400, { error: 'Invalid inquiry payload.' });
+        return;
+      }
+
+      if (EDGE_SHARED_SECRET) {
+        const edgeHeader = normalizeText(req.headers['x-edge-auth']);
+        if (!edgeHeader || edgeHeader !== EDGE_SHARED_SECRET) {
+          recordBlockedEvent('edge_secret_missing', { ipKey });
+          sendJson(req, res, 403, { error: 'Request rejected by edge policy.' });
+          return;
+        }
+      }
+
+      if (honeypot) {
+        recordBlockedEvent('honeypot_triggered', { ipKey });
+        sendJson(req, res, 400, { error: 'Invalid submission.' });
+        return;
+      }
+
+      const fillElapsedMs = Date.now() - formStartedAt;
+      if (!Number.isFinite(formStartedAt) || formStartedAt <= 0 || fillElapsedMs < INQUIRY_MIN_FILL_TIME_MS) {
+        recordBlockedEvent('fill_time_too_fast', { ipKey, fillElapsedMs });
+        sendJson(req, res, 400, { error: 'Submission was too fast. Please try again.' });
+        return;
+      }
+
+      if (fillElapsedMs > INQUIRY_MAX_FILL_TIME_MS) {
+        sendJson(req, res, 400, { error: 'Form session expired. Please open the form again.' });
+        return;
+      }
+
+      const captchaCheck = await verifyCaptchaToken(captchaToken, ipKey);
+      if (!captchaCheck.ok) {
+        recordBlockedEvent('captcha_failed', { ipKey, provider: captchaCheck.provider });
+        sendJson(req, res, 400, { error: captchaCheck.error || 'Captcha validation failed.' });
         return;
       }
 
@@ -376,34 +783,123 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      const identityKey = getInquiryIdentityKey(inquiry);
+      const dedupeKey = getInquiryDedupeKey(inquiry);
+
+      const ipRate = evaluateSlidingWindowLimit(inquiryIpAttempts, ipKey, INQUIRY_RATE_LIMIT);
+      if (!ipRate.allowed) {
+        recordBlockedEvent('ip_rate_limited', { ipKey, burstBlocked: ipRate.burstBlocked });
+        sendTooManyRequests(req, res, 'Too many requests from this IP. Please try later.', ipRate.retryAfterMs);
+        return;
+      }
+
+      const identityRate = evaluateSlidingWindowLimit(inquiryIdentityAttempts, identityKey, INQUIRY_RATE_LIMIT);
+      if (!identityRate.allowed) {
+        recordBlockedEvent('identity_rate_limited', { ipKey });
+        sendTooManyRequests(req, res, 'Too many requests for this contact identity. Please try later.', identityRate.retryAfterMs);
+        return;
+      }
+
+      const duplicateCheck = checkInquiryDuplicate(dedupeKey);
+      if (duplicateCheck.duplicate) {
+        recordBlockedEvent('duplicate_submission', { ipKey });
+        sendTooManyRequests(
+          req,
+          res,
+          'Duplicate inquiry detected. Please wait before resubmitting.',
+          duplicateCheck.retryAfterMs
+        );
+        return;
+      }
+
+      const dailyCapCheck = checkDailyCaps(ipKey, identityKey);
+      if (!dailyCapCheck.allowed) {
+        recordBlockedEvent('daily_cap_reached', { ipKey, reason: dailyCapCheck.reason });
+        sendTooManyRequests(req, res, 'Daily inquiry limit reached. Please try again tomorrow.', 24 * 60 * 60_000);
+        return;
+      }
+
       const normalizedChannel = channel === 'whatsapp' ? 'whatsapp' : 'email';
       const subject = `Wedding Inquiry (${normalizedChannel}) - ${normalizeText(inquiry.name)}`;
       const messageBody = buildInquiryBody(inquiry, labels);
       const messageHtml = buildInquiryHtml(inquiry, labels, normalizedChannel);
-      const delivery = await deliverInquiry({
-        inquiry,
-        labels,
-        channel: normalizedChannel,
-        targetEmail,
-        targetWhatsApp,
-        subject,
-        body: messageBody,
-        html: messageHtml,
-        submittedAt: new Date().toISOString()
-      });
-
-      appendAuditLog({
-        action: 'public_inquiry',
-        userId: 'public',
+      const queueJob = enqueueInquiryDelivery({
         metadata: {
           channel: normalizedChannel,
-          provider: delivery.provider,
+          email: normalizeEmail(inquiry.email),
+          ipHash: hashText(ipKey).slice(0, 20),
+          identityHash: identityKey.slice(0, 20)
+        },
+        deliveryPayload: {
+          inquiry,
+          labels,
+          channel: normalizedChannel,
+          targetEmail,
+          targetWhatsApp,
+          subject,
+          body: messageBody,
+          html: messageHtml,
+          submittedAt: new Date().toISOString()
+        }
+      });
+
+      markInquiryDuplicate(dedupeKey);
+      incrementDailyCounters(ipKey, identityKey);
+
+      appendAuditLog({
+        action: 'public_inquiry_queued',
+        userId: 'public',
+        metadata: {
+          queueId: queueJob.id,
+          channel: normalizedChannel,
           email: normalizeEmail(inquiry.email),
           targetEmail
         }
       });
 
-      sendJson(req, res, 200, { ok: true, provider: delivery.provider });
+      sendJson(req, res, 200, {
+        ok: true,
+        status: 'queued',
+        queueId: queueJob.id
+      });
+      return;
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/admin/security/stats') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      ensureDailyCounters();
+      sendJson(req, res, 200, {
+        day: dailyCounters.dayKey,
+        globalCount: dailyCounters.global,
+        queueDepth: inquiryQueue.length,
+        ipEntries: inquiryIpAttempts.size,
+        identityEntries: inquiryIdentityAttempts.size,
+        dedupeEntries: inquiryDedupe.size,
+        caps: {
+          global: INQUIRY_DAILY_GLOBAL_CAP,
+          perIp: INQUIRY_DAILY_IP_CAP,
+          perIdentity: INQUIRY_DAILY_IDENTITY_CAP
+        }
+      });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/admin/security/alert-test') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      await sendSecurityAlert('[manual_security_alert_test]', { initiatedBy: user.email });
+      sendJson(req, res, 200, { ok: true });
       return;
     }
 
@@ -496,24 +992,89 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (user.mfaEnabled) {
+        sendJson(req, res, 409, { error: 'Authenticator is already enabled.' });
+        return;
+      }
+
       const secret = generateTotpSecret();
       const recoveryCodes = generateRecoveryCodes();
-      user.mfaSecret = secret;
-      user.mfaEnabled = true;
-      user.recoveryCodes = recoveryCodes;
-      saveStore(store);
+      const expiresAt = Date.now() + MFA_SETUP_TTL_MS;
+      pendingMfaSetups.set(user.id, {
+        secret,
+        recoveryCodes,
+        expiresAt
+      });
 
-      appendAuditLog({ action: 'mfa_setup', userId: user.id, metadata: {} });
+      appendAuditLog({ action: 'mfa_setup_started', userId: user.id, metadata: {} });
 
       sendJson(req, res, 200, {
         secret,
-        recoveryCodes,
+        expiresInSec: Math.ceil(MFA_SETUP_TTL_MS / 1_000),
         otpauthUrl: getOtpAuthUrl({
           issuer: 'Elite Weddings Admin',
           accountName: user.email,
           secret
         })
       });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/admin/auth/mfa/setup/confirm') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      const body = await getRequestBody(req);
+      const code = String(body.code || '').trim();
+      if (!code) {
+        sendJson(req, res, 400, { error: 'Authenticator code is required.' });
+        return;
+      }
+
+      const pendingSetup = pendingMfaSetups.get(user.id);
+      if (!pendingSetup || pendingSetup.expiresAt <= Date.now()) {
+        pendingMfaSetups.delete(user.id);
+        sendJson(req, res, 400, { error: 'MFA setup expired. Start setup again.' });
+        return;
+      }
+
+      const valid = verifyTotp(pendingSetup.secret, code);
+      if (!valid) {
+        sendJson(req, res, 401, { error: 'Invalid authenticator code.' });
+        return;
+      }
+
+      user.mfaSecret = pendingSetup.secret;
+      user.mfaEnabled = true;
+      user.recoveryCodes = pendingSetup.recoveryCodes;
+      saveStore(store);
+      pendingMfaSetups.delete(user.id);
+
+      appendAuditLog({ action: 'mfa_setup', userId: user.id, metadata: { confirmed: true } });
+      sendJson(req, res, 200, { user: sanitizeUser(user) });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/admin/auth/mfa/disable') {
+      const store = loadStore();
+      const user = getAuthUser(req, store);
+      if (!user) {
+        sendJson(req, res, 401, { error: 'Unauthorized' });
+        return;
+      }
+
+      user.mfaEnabled = false;
+      user.mfaSecret = null;
+      user.recoveryCodes = [];
+      pendingMfaSetups.delete(user.id);
+      saveStore(store);
+
+      appendAuditLog({ action: 'mfa_disabled', userId: user.id, metadata: {} });
+      sendJson(req, res, 200, { user: sanitizeUser(user) });
       return;
     }
 
@@ -786,6 +1347,14 @@ const server = http.createServer(async (req, res) => {
     sendJson(req, res, 500, { error: error instanceof Error ? error.message : 'Server error' });
   }
 });
+
+setInterval(() => {
+  void processInquiryQueueTick();
+}, INQUIRY_QUEUE_THROUGHPUT_MS);
+
+setInterval(() => {
+  cleanupInMemorySecurityState();
+}, 60_000);
 
 server.listen(PORT, () => {
   console.log(`[backend] running on http://localhost:${PORT}`);

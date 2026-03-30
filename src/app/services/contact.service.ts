@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ContactInquiry } from '../models/contact.model';
+import { ContactInquiry, InquirySubmission } from '../models/contact.model';
 
 type InquiryLabels = {
   name: string;
@@ -26,12 +26,13 @@ export class ContactService {
   }
 
   public async submitInquiry(
-    inquiry: ContactInquiry,
+    submission: InquirySubmission,
     labels: InquiryLabels,
     channel: 'email' | 'whatsapp',
     inquiryEmail?: string,
     whatsAppNumber?: string
   ): Promise<void> {
+    const inquiry: ContactInquiry = submission.inquiry;
     const response = await fetch(`${this.backendApiBase}/api/public/inquiry`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -39,6 +40,9 @@ export class ContactService {
         inquiry,
         labels,
         channel,
+        honeypot: submission.honeypot,
+        formStartedAt: submission.formStartedAt,
+        captchaToken: submission.captchaToken,
         targetEmail: inquiryEmail?.trim() || this.defaultInquiryEmail,
         targetWhatsApp: this.normalizeWhatsAppNumber(whatsAppNumber)
       })

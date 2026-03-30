@@ -1,4 +1,4 @@
-import { DOCUMENT } from '@angular/common';
+﻿import { DOCUMENT } from '@angular/common';
 import { Component, OnDestroy, ViewEncapsulation, computed, effect, inject, signal } from '@angular/core';
 import {
   EVENT_ESSENTIALS,
@@ -19,7 +19,7 @@ import { GallerySectionComponent } from './features/gallery-section/gallery-sect
 import { HeaderComponent } from './features/header/header.component';
 import { HeroSectionComponent } from './features/hero-section/hero-section.component';
 import { StickyCtaComponent } from './features/sticky-cta/sticky-cta.component';
-import { ContactInquiry } from './models/contact.model';
+import { InquirySubmission } from './models/contact.model';
 import { ContentSection, Language, NavItem } from './models/site-content.model';
 import { AnalyticsService } from './services/analytics.service';
 import { ContactService } from './services/contact.service';
@@ -30,6 +30,18 @@ type AdminUser = {
   mfaEnabled: boolean;
   createdAt: string;
 };
+
+type ToastLevel = 'success' | 'error' | 'info';
+
+type ToastMessage = {
+  id: number;
+  level: ToastLevel;
+  title: string;
+  message: string;
+};
+
+type LegalTab = 'terms' | 'privacy' | 'cookies';
+type CookieConsent = 'unknown' | 'accepted' | 'rejected';
 
 @Component({
   selector: 'app-root',
@@ -64,9 +76,12 @@ export class App implements OnDestroy {
   private readonly remoteContent = signal<Partial<Record<Language, ContentSection>> | null>(null);
   protected readonly content = computed(() => this.resolvedContent(this.currentLanguage()));
   protected readonly inquiryConfirmation = signal('');
+  protected readonly cookieConsent = signal<CookieConsent>('unknown');
   protected readonly isAdminModalOpen = signal(false);
   protected readonly isAdminAuthenticated = signal(false);
   protected readonly isAdminEditing = signal(false);
+  protected readonly isLegalModalOpen = signal(false);
+  protected readonly legalTab = signal<LegalTab>('terms');
   protected readonly adminAuthMessage = signal('');
   protected readonly isMfaStep = signal(false);
   protected readonly isAdminManagerOpen = signal(false);
@@ -76,12 +91,16 @@ export class App implements OnDestroy {
   protected readonly adminManagerMessage = signal('');
   protected readonly adminUsersFilter = signal('');
   protected readonly hasUnsavedAdminChanges = signal(false);
-  protected readonly mfaSetup = signal<{ otpauthUrl: string; recoveryCodes: string[] } | null>(null);
+  protected readonly mfaSetup = signal<{ otpauthUrl: string; expiresInSec: number } | null>(null);
   protected readonly activeInlineEditor = signal<
     'hero' | 'essentials' | 'about' | 'gallery' | 'faq' | 'contact' | 'footer' | null
   >(null);
   private adminTempToken = '';
   private adminAccessToken = '';
+  private readonly cookieConsentStorageKey = 'landing_cookie_consent';
+  private toastIdCounter = 0;
+  private readonly toastTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
+  public readonly toasts = signal<ToastMessage[]>([]);
 
   public constructor() {
     effect(() => {
@@ -93,6 +112,7 @@ export class App implements OnDestroy {
 
     void this.loadRemoteContent();
     this.initRevealMotion();
+    this.initCookieConsent();
 
     const storedToken = this.document.defaultView?.sessionStorage.getItem('landing_admin_access_token');
     if (storedToken) {
@@ -189,11 +209,19 @@ export class App implements OnDestroy {
       this.closeAdminModal();
       return;
     }
+
+    if (this.isLegalModalOpen()) {
+      this.closeLegalModal();
+    }
   };
 
   public ngOnDestroy(): void {
     this.document.defaultView?.removeEventListener('keydown', this.onAdminShortcut);
     this.document.defaultView?.removeEventListener('keydown', this.onEscapeClose);
+    for (const timeout of this.toastTimeouts.values()) {
+      clearTimeout(timeout);
+    }
+    this.toastTimeouts.clear();
   }
 
   protected setLanguage(language: Language): void {
@@ -207,6 +235,298 @@ export class App implements OnDestroy {
     this.adminTempToken = '';
   }
 
+  protected acceptCookies(): void {
+    this.setCookieConsent('accepted');
+  }
+
+  protected rejectCookies(): void {
+    this.setCookieConsent('rejected');
+  }
+
+  protected openLegalModal(tab: LegalTab): void {
+    this.legalTab.set(tab);
+    this.isLegalModalOpen.set(true);
+  }
+
+  protected closeLegalModal(): void {
+    this.isLegalModalOpen.set(false);
+  }
+
+  protected legalLabel(tab: LegalTab): string {
+    const ka = this.currentLanguage() === 'ka';
+    if (tab === 'terms') {
+      return ka ? 'áƒ¬áƒ”áƒ¡áƒ”áƒ‘áƒ˜ áƒ“áƒ áƒžáƒ˜áƒ áƒáƒ‘áƒ”áƒ‘áƒ˜' : 'Terms & Conditions';
+    }
+    if (tab === 'privacy') {
+      return ka ? 'áƒ™áƒáƒœáƒ¤áƒ˜áƒ“áƒ”áƒœáƒªáƒ˜áƒáƒšáƒ£áƒ áƒáƒ‘áƒ˜áƒ¡ áƒžáƒáƒšáƒ˜áƒ¢áƒ˜áƒ™áƒ' : 'Privacy Policy';
+    }
+    return ka ? 'áƒ¥áƒ£áƒ¥áƒ˜ áƒžáƒáƒšáƒ˜áƒ¢áƒ˜áƒ™áƒ' : 'Cookie Policy';
+  }
+
+  protected legalModalTitle(): string {
+    return this.legalLabel(this.legalTab());
+  }
+
+  protected legalUpdatedAt(): string {
+    return this.currentLanguage() === 'ka' ? 'áƒ’áƒáƒœáƒáƒ®áƒšáƒ“áƒ: 2026-03-30' : 'Last updated: 2026-03-30';
+  }
+
+  protected legalSections(): Array<{ title: string; points: string[] }> {
+    const ka = this.currentLanguage() === 'ka';
+    const tab = this.legalTab();
+
+    if (tab === 'terms') {
+      if (ka) {
+        return [
+          {
+            title: '1. მომსახურების მოცულობა',
+            points: [
+              'Elite Weddings & Events Co. გთავაზობთ ქორწილის დაგეგმვას, კოორდინაციას და საკონსულტაციო მომსახურებას.',
+              'საბოლოო მომსახურების სია, ვადები და პასუხისმგებლობები განისაზღვრება ხელშეკრულებით ან წერილობითი შეთავაზებით.'
+            ]
+          },
+          {
+            title: '2. დაჯავშნა და გადახდები',
+            points: [
+              'დაჯავშნა ძალაში შედის მხოლოდ ხელშეკრულების/დადასტურების და წინასწარი გადახდის შემდეგ.',
+              'დაგვიანებულმა გადახდამ შეიძლება გამოიწვიოს სერვისის შეჩერება ან დაჯავშნილი თარიღის დაკარგვა.'
+            ]
+          },
+          {
+            title: '3. გაუქმება, გადატანა და დაბრუნება',
+            points: [
+              'გაუქმების და თანხის დაბრუნების პირობები განისაზღვრება ინდივიდუალური ხელშეკრულების მიხედვით.',
+              'თარიღის ცვლილება დამოკიდებულია ვენდორებისა და ლოკაციის ხელმისაწვდომობაზე და შეიძლება მოიცავდეს დამატებით ხარჯებს.'
+            ]
+          },
+          {
+            title: '4. მესამე მხარის ვენდორები',
+            points: [
+              'ფოტოგრაფი, ვიდეოგრაფი, ქეითერინგი, ტრანსპორტი, მუსიკა და სხვა მომწოდებლები შეიძლება იყვნენ დამოუკიდებელი კონტრაქტორები.',
+              'კომპანია პასუხისმგებელია კოორდინაციაზე, მაგრამ არა მესამე მხარის დამოუკიდებელ დარღვევებზე.'
+            ]
+          },
+          {
+            title: '5. პასუხისმგებლობის შეზღუდვა',
+            points: [
+              'ფორს-მაჟორის შემთხვევებში (ამინდი, სტიქია, სახელმწიფო შეზღუდვები და სხვა) ვალდებულებები სრულდება შესაბამისი კანონისა და ხელშეკრულების მიხედვით.',
+              'პასუხისმგებლობის ლიმიტი, თუ სხვა რამ არ არის მოთხოვნილი კანონით, შემოიფარგლება რეალურად გადახდილი მომსახურების თანხით.'
+            ]
+          },
+          {
+            title: '6. ინტელექტუალური საკუთრება და სამართალი',
+            points: [
+              'საიტის ტექსტები, ფოტოები და ბრენდული ელემენტები დაცულია და მათი უნებართვო გამოყენება აკრძალულია.',
+              'დავების შემთხვევაში, თუ ხელშეკრულებით სხვა რამ არ არის გათვალისწინებული, გამოიყენება საქართველოს კანონმდებლობა.'
+            ]
+          }
+        ];
+      }
+
+      return [
+        {
+          title: '1. Service Scope',
+          points: [
+            'Elite Weddings & Events Co. provides wedding planning, coordination, and consulting services.',
+            'Final scope, deliverables, timelines, and responsibilities are defined in your written agreement.'
+          ]
+        },
+        {
+          title: '2. Booking and Payments',
+          points: [
+            'A booking becomes effective only after written confirmation and the agreed deposit payment.',
+            'Late payments may pause services or release reserved dates/vendor slots.'
+          ]
+        },
+        {
+          title: '3. Cancellation, Rescheduling, Refunds',
+          points: [
+            'Cancellation and refund terms are governed by the signed contract and payment stage.',
+            'Date changes are subject to vendor/venue availability and may involve additional costs.'
+          ]
+        },
+        {
+          title: '4. Third-Party Vendors',
+          points: [
+            'Photographers, venues, caterers, transport, and other providers may be independent contractors.',
+            'We are responsible for coordination services, not for independent third-party non-performance.'
+          ]
+        },
+        {
+          title: '5. Limitation of Liability',
+          points: [
+            'Force majeure events (weather, natural events, public restrictions, etc.) are handled under applicable law and contract terms.',
+            'Unless otherwise required by law, liability is limited to fees actually paid for our services.'
+          ]
+        },
+        {
+          title: '6. Intellectual Property and Governing Law',
+          points: [
+            'Website content and brand assets may not be reused without prior written permission.',
+            'Unless otherwise agreed in writing, disputes are governed by Georgian law.'
+          ]
+        }
+      ];
+    }
+
+    if (tab === 'privacy') {
+      if (ka) {
+        return [
+          {
+            title: '1. რა მონაცემებს ვაგროვებთ',
+            points: [
+              'საკონტაქტო ფორმის მონაცემები: სახელი, ელფოსტა, ტელეფონი, ღონისძიების დეტალები.',
+              'ტექნიკური/უსაფრთხოების მონაცემები: IP მისამართი, ანტი-სპამის სიგნალები, მოთხოვნის ლოგები.'
+            ]
+          },
+          {
+            title: '2. დამუშავების მიზანი',
+            points: [
+              'თქვენს მოთხოვნაზე პასუხისთვის, შეთავაზების მოსამზადებლად და მომსახურების გასაწევად.',
+              'პერსონალური მონაცემები არ იყიდება და არ ქირავდება მესამე პირებზე.'
+            ]
+          },
+          {
+            title: '3. მესამე პირებთან გაზიარება',
+            points: [
+              'მონაცემები შეიძლება გაზიარდეს მხოლოდ საჭირო ტექნიკურ სერვის-პროვაიდერებთან (მაგ.: ჰოსტინგი, ელფოსტის მიწოდება).',
+              'ამ პარტნიორებს ევალებათ კონფიდენციალურობისა და უსაფრთხოების დაცვა.'
+            ]
+          },
+          {
+            title: '4. შენახვის ვადები და უსაფრთხოება',
+            points: [
+              'მონაცემები ინახება იმდენ ხანს, რამდენიც საჭიროა მომსახურებისთვის და სამართლებრივი ვალდებულებების შესასრულებლად.',
+              'ვიყენებთ გონივრულ ტექნიკურ და ორგანიზაციულ ზომებს მონაცემთა დასაცავად.'
+            ]
+          },
+          {
+            title: '5. თქვენი უფლებები',
+            points: [
+              'კანონის ფარგლებში შეგიძლიათ მოითხოვოთ მონაცემებზე წვდომა, შესწორება, წაშლა ან შეზღუდვა.',
+              `მიმართეთ: ${this.contactEmail()}.`
+            ]
+          },
+          {
+            title: '6. საერთაშორისო გადაცემა და არასრულწლოვნები',
+            points: [
+              'თუ მონაცემები მუშავდება უცხო ქვეყანაში მყოფი პროვაიდერის მიერ, გამოიყენება შესაბამისი დაცვის ზომები.',
+              'სერვისი არ არის განკუთვნილი არასრულწლოვნების მიერ დამოუკიდებელი ხელშეკრულებისთვის.'
+            ]
+          }
+        ];
+      }
+
+      return [
+        {
+          title: '1. Data We Collect',
+          points: [
+            'Contact details you submit: name, email, phone, and event preferences.',
+            'Technical/security data: IP address, anti-abuse signals, and request logs.'
+          ]
+        },
+        {
+          title: '2. Why We Process Data',
+          points: [
+            'To respond to inquiries, prepare proposals, and deliver planning services.',
+            'We do not sell or rent personal data to third parties.'
+          ]
+        },
+        {
+          title: '3. Sharing with Service Providers',
+          points: [
+            'Data may be shared only with necessary providers (e.g., hosting, email delivery) for service operation.',
+            'Such providers are expected to apply confidentiality and security safeguards.'
+          ]
+        },
+        {
+          title: '4. Retention and Security',
+          points: [
+            'Data is retained only as long as needed for service and legal/accounting obligations.',
+            'We apply reasonable technical and organizational safeguards to protect personal data.'
+          ]
+        },
+        {
+          title: '5. Your Rights',
+          points: [
+            'Where applicable by law, you may request access, correction, deletion, or restriction of processing.',
+            `For privacy requests, contact: ${this.contactEmail()}.`
+          ]
+        },
+        {
+          title: '6. International Transfers and Minors',
+          points: [
+            'If providers process data outside your country, appropriate safeguards are applied.',
+            'This service is not intended for independent contracting by minors.'
+          ]
+        }
+      ];
+    }
+
+    if (ka) {
+      return [
+        {
+          title: '1. რა არის ქუქი',
+          points: [
+            'ქუქი არის მცირე ფაილი, რომელიც ინახება თქვენს ბრაუზერში და ეხმარება საიტის მუშაობას.',
+            'ქუქები შეიძლება იყოს აუცილებელი ფუნქციონირებისთვის ან ანალიტიკისთვის.'
+          ]
+        },
+        {
+          title: '2. ქუქების ტიპები',
+          points: [
+            'აუცილებელი ქუქები: უსაფრთხოება, სესია, ფორმების ძირითადი ფუნქციონირება.',
+            'ანალიტიკური ქუქები: აგრეგირებული სტატისტიკა (მხოლოდ თანხმობის შემთხვევაში).'
+          ]
+        },
+        {
+          title: '3. თანხმობა და მართვა',
+          points: [
+            'საიტზე პირველ ვიზიტზე შეგიძლიათ დაადასტუროთ ან უარყოთ არასავალდებულო ქუქები.',
+            'ქუქების კონტროლი/წაშლა ასევე შესაძლებელია ბრაუზერის პარამეტრებიდან.'
+          ]
+        },
+        {
+          title: '4. ვადები',
+          points: [
+            'სესიური ქუქები იშლება ბრაუზერის დახურვისას.',
+            'მუდმივი ქუქები ინახება კონკრეტული ვადით ან ხელით წაშლამდე.'
+          ]
+        }
+      ];
+    }
+
+    return [
+      {
+        title: '1. What Cookies Are',
+        points: [
+          'Cookies are small text files stored by your browser to help website functionality.',
+          'Cookies may be essential for operation or optional for analytics.'
+        ]
+      },
+      {
+        title: '2. Cookie Types',
+        points: [
+          'Essential cookies: security, session continuity, and core form behavior.',
+          'Analytics cookies: aggregate usage insights (only with your consent).'
+        ]
+      },
+      {
+        title: '3. Consent and Control',
+        points: [
+          'On first visit, you can accept or reject optional analytics cookies.',
+          'You can also manage or delete cookies from browser settings anytime.'
+        ]
+      },
+      {
+        title: '4. Duration',
+        points: [
+          'Session cookies expire when the browser closes.',
+          'Persistent cookies remain until expiry or manual deletion.'
+        ]
+      }
+    ];
+  }
   protected async loginAsAdmin(email: string, password: string): Promise<void> {
     this.adminAuthMessage.set('Signing in...');
     try {
@@ -230,6 +550,7 @@ export class App implements OnDestroy {
         this.adminTempToken = payload.tempToken;
         this.isMfaStep.set(true);
         this.adminAuthMessage.set('MFA required. Enter your authenticator code.');
+        this.showToast('info', 'MFA Required', 'Enter the authenticator code to continue.');
         return;
       }
 
@@ -239,7 +560,9 @@ export class App implements OnDestroy {
 
       this.finishAdminLogin(payload.accessToken);
     } catch (error) {
-      this.adminAuthMessage.set(error instanceof Error ? error.message : 'Login failed.');
+      const message = error instanceof Error ? error.message : 'Login failed.';
+      this.adminAuthMessage.set(message);
+      this.showToast('error', 'Admin Login Failed', message);
     }
   }
 
@@ -262,7 +585,9 @@ export class App implements OnDestroy {
 
       this.finishAdminLogin(payload.accessToken);
     } catch (error) {
-      this.adminAuthMessage.set(error instanceof Error ? error.message : 'MFA verification failed.');
+      const message = error instanceof Error ? error.message : 'MFA verification failed.';
+      this.adminAuthMessage.set(message);
+      this.showToast('error', 'MFA Verification Failed', message);
     }
   }
 
@@ -307,8 +632,11 @@ export class App implements OnDestroy {
 
       this.adminAuthMessage.set('Saved successfully.');
       this.hasUnsavedAdminChanges.set(false);
+      this.showToast('success', 'Changes Saved', 'Website content updated successfully.');
     } catch (error) {
-      this.adminAuthMessage.set(error instanceof Error ? error.message : 'Save failed.');
+      const message = error instanceof Error ? error.message : 'Save failed.';
+      this.adminAuthMessage.set(message);
+      this.showToast('error', 'Save Failed', message);
     }
   }
 
@@ -352,9 +680,12 @@ export class App implements OnDestroy {
       }
       this.adminProfile.set(payload.user);
       this.adminManagerMessage.set('Profile saved.');
+      this.showToast('success', 'Profile Saved', 'Your admin profile has been updated.');
       await this.loadAdminUsers();
     } catch (error) {
-      this.adminManagerMessage.set(error instanceof Error ? error.message : 'Profile save failed.');
+      const message = error instanceof Error ? error.message : 'Profile save failed.';
+      this.adminManagerMessage.set(message);
+      this.showToast('error', 'Profile Save Failed', message);
     }
   }
 
@@ -374,7 +705,7 @@ export class App implements OnDestroy {
       });
       const payload = (await response.json()) as {
         otpauthUrl?: string;
-        recoveryCodes?: string[];
+        expiresInSec?: number;
         error?: string;
       };
       if (!response.ok) {
@@ -383,13 +714,87 @@ export class App implements OnDestroy {
 
       this.mfaSetup.set({
         otpauthUrl: payload.otpauthUrl ?? '',
-        recoveryCodes: payload.recoveryCodes ?? []
+        expiresInSec: Number(payload.expiresInSec || 0)
       });
-      this.adminManagerMessage.set('Authenticator enabled. Save your recovery codes now.');
-      await this.loadAdminManagerData();
+      this.adminManagerMessage.set('Scan the QR and enter your 6-digit code to activate authenticator.');
+      this.showToast('info', 'Scan QR Code', 'Enter a code from your authenticator app to finish activation.');
     } catch (error) {
-      this.adminManagerMessage.set(error instanceof Error ? error.message : 'MFA setup failed.');
+      const message = error instanceof Error ? error.message : 'MFA setup failed.';
+      this.adminManagerMessage.set(message);
+      this.showToast('error', 'MFA Setup Failed', message);
     }
+  }
+
+  protected async confirmAdminMfaSetup(code: string): Promise<void> {
+    if (!this.adminAccessToken) {
+      return;
+    }
+
+    this.adminManagerMessage.set('Confirming authenticator code...');
+    try {
+      const response = await fetch(`${this.adminApiBase}/api/admin/auth/mfa/setup/confirm`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.adminAccessToken}`
+        },
+        body: JSON.stringify({ code })
+      });
+
+      const payload = (await response.json()) as { user?: AdminUser; error?: string };
+      if (!response.ok || !payload.user) {
+        throw new Error(payload.error || 'MFA confirmation failed.');
+      }
+
+      this.adminProfile.set(payload.user);
+      this.mfaSetup.set(null);
+      this.adminManagerMessage.set('Authenticator enabled.');
+      this.showToast('success', 'Authenticator Enabled', 'MFA is now active for your account.');
+      await this.loadAdminUsers();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'MFA confirmation failed.';
+      this.adminManagerMessage.set(message);
+      this.showToast('error', 'MFA Confirmation Failed', message);
+    }
+  }
+
+  protected async disableAdminMfa(): Promise<void> {
+    if (!this.adminAccessToken) {
+      return;
+    }
+
+    this.adminManagerMessage.set('Disabling authenticator...');
+    try {
+      const response = await fetch(`${this.adminApiBase}/api/admin/auth/mfa/disable`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.adminAccessToken}`
+        }
+      });
+      const payload = (await response.json()) as { user?: AdminUser; error?: string };
+      if (!response.ok || !payload.user) {
+        throw new Error(payload.error || 'MFA disable failed.');
+      }
+
+      this.adminProfile.set(payload.user);
+      this.mfaSetup.set(null);
+      this.adminManagerMessage.set('Authenticator disabled.');
+      this.showToast('success', 'Authenticator Disabled', 'MFA has been turned off.');
+      await this.loadAdminUsers();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'MFA disable failed.';
+      this.adminManagerMessage.set(message);
+      this.showToast('error', 'MFA Disable Failed', message);
+    }
+  }
+
+  protected mfaQrCodeUrl(): string {
+    const otpUrl = this.mfaSetup()?.otpauthUrl || '';
+    if (!otpUrl) {
+      return '';
+    }
+    return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpUrl)}`;
   }
 
   protected async createAdminUser(email: string, password: string): Promise<void> {
@@ -412,9 +817,12 @@ export class App implements OnDestroy {
         throw new Error(payload.error || 'User create failed.');
       }
       this.adminManagerMessage.set('User created.');
+      this.showToast('success', 'User Created', `${payload.user.email} was added.`);
       await this.loadAdminUsers();
     } catch (error) {
-      this.adminManagerMessage.set(error instanceof Error ? error.message : 'User create failed.');
+      const message = error instanceof Error ? error.message : 'User create failed.';
+      this.adminManagerMessage.set(message);
+      this.showToast('error', 'User Create Failed', message);
     }
   }
 
@@ -448,10 +856,13 @@ export class App implements OnDestroy {
         throw new Error(payload.error || 'User update failed.');
       }
       this.adminManagerMessage.set('User updated.');
+      this.showToast('success', 'User Updated', `${payload.user.email} was updated.`);
       await this.loadAdminUsers();
       await this.loadAdminProfile();
     } catch (error) {
-      this.adminManagerMessage.set(error instanceof Error ? error.message : 'User update failed.');
+      const message = error instanceof Error ? error.message : 'User update failed.';
+      this.adminManagerMessage.set(message);
+      this.showToast('error', 'User Update Failed', message);
     }
   }
 
@@ -478,9 +889,12 @@ export class App implements OnDestroy {
         throw new Error(payload.error || 'User delete failed.');
       }
       this.adminManagerMessage.set('User deleted.');
+      this.showToast('success', 'User Deleted', 'The selected user account has been removed.');
       await this.loadAdminUsers();
     } catch (error) {
-      this.adminManagerMessage.set(error instanceof Error ? error.message : 'User delete failed.');
+      const message = error instanceof Error ? error.message : 'User delete failed.';
+      this.adminManagerMessage.set(message);
+      this.showToast('error', 'User Delete Failed', message);
     }
   }
 
@@ -527,8 +941,10 @@ export class App implements OnDestroy {
     try {
       await this.document.defaultView?.navigator.clipboard.writeText(value);
       this.adminManagerMessage.set(successMessage);
+      this.showToast('success', 'Copied', successMessage);
     } catch {
       this.adminManagerMessage.set('Copy failed. Please copy manually.');
+      this.showToast('error', 'Copy Failed', 'Please copy the value manually.');
     }
   }
 
@@ -564,11 +980,11 @@ export class App implements OnDestroy {
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { label: 'მთავარი', href: '#home' },
-        { label: 'დეტალები', href: '#essentials' },
-        { label: 'ჩვენ შესახებ', href: '#about' },
+        { label: 'áƒ›áƒ—áƒáƒ•áƒáƒ áƒ˜', href: '#home' },
+        { label: 'áƒ“áƒ”áƒ¢áƒáƒšáƒ”áƒ‘áƒ˜', href: '#essentials' },
+        { label: 'áƒ©áƒ•áƒ”áƒœ áƒ¨áƒ”áƒ¡áƒáƒ®áƒ”áƒ‘', href: '#about' },
         { label: 'FAQ', href: '#faq' },
-        { label: 'კონტაქტი', href: '#contact' }
+        { label: 'áƒ™áƒáƒœáƒ¢áƒáƒ¥áƒ¢áƒ˜', href: '#contact' }
       ];
     }
 
@@ -577,13 +993,13 @@ export class App implements OnDestroy {
 
   protected eventEssentialsTitle(): string {
     return this.content().landing?.eventEssentialsTitle
-      ?? (this.currentLanguage() === 'ka' ? 'მთავარი დეტალები' : 'Event essentials');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒ›áƒ—áƒáƒ•áƒáƒ áƒ˜ áƒ“áƒ”áƒ¢áƒáƒšáƒ”áƒ‘áƒ˜' : 'Event essentials');
   }
 
   protected eventEssentialsDescription(): string {
     return this.content().landing?.eventEssentialsDescription
       ?? (this.currentLanguage() === 'ka'
-        ? 'სტუმრებისთვის საჭირო ყველაფერი ერთ ეკრანზე: თარიღი, დრო, ლოკაცია, დრეს კოდი და ტაიმლაინი.'
+        ? 'áƒ¡áƒ¢áƒ£áƒ›áƒ áƒ”áƒ‘áƒ˜áƒ¡áƒ—áƒ•áƒ˜áƒ¡ áƒ¡áƒáƒ­áƒ˜áƒ áƒ áƒ§áƒ•áƒ”áƒšáƒáƒ¤áƒ”áƒ áƒ˜ áƒ”áƒ áƒ— áƒ”áƒ™áƒ áƒáƒœáƒ–áƒ”: áƒ—áƒáƒ áƒ˜áƒ¦áƒ˜, áƒ“áƒ áƒ, áƒšáƒáƒ™áƒáƒªáƒ˜áƒ, áƒ“áƒ áƒ”áƒ¡ áƒ™áƒáƒ“áƒ˜ áƒ“áƒ áƒ¢áƒáƒ˜áƒ›áƒšáƒáƒ˜áƒœáƒ˜.'
         : 'Everything guests need at a glance: date, time, location, dress code, and timeline.');
   }
 
@@ -595,10 +1011,10 @@ export class App implements OnDestroy {
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { label: 'თარიღი', value: '12 სექტემბერი, 2026' },
-        { label: 'დრო', value: '17:00 ცერემონია, 19:00 მიღება' },
-        { label: 'ლოკაცია', value: 'Wedding Palace, თბილისი' },
-        { label: 'დრეს კოდი', value: 'Formal / Black tie optional' }
+        { label: 'áƒ—áƒáƒ áƒ˜áƒ¦áƒ˜', value: '12 áƒ¡áƒ”áƒ¥áƒ¢áƒ”áƒ›áƒ‘áƒ”áƒ áƒ˜, 2026' },
+        { label: 'áƒ“áƒ áƒ', value: '17:00 áƒªáƒ”áƒ áƒ”áƒ›áƒáƒœáƒ˜áƒ, 19:00 áƒ›áƒ˜áƒ¦áƒ”áƒ‘áƒ' },
+        { label: 'áƒšáƒáƒ™áƒáƒªáƒ˜áƒ', value: 'Wedding Palace, áƒ—áƒ‘áƒ˜áƒšáƒ˜áƒ¡áƒ˜' },
+        { label: 'áƒ“áƒ áƒ”áƒ¡ áƒ™áƒáƒ“áƒ˜', value: 'Formal / Black tie optional' }
       ];
     }
 
@@ -607,7 +1023,7 @@ export class App implements OnDestroy {
 
   protected eventTimelineTitle(): string {
     return this.content().landing?.eventTimelineTitle
-      ?? (this.currentLanguage() === 'ka' ? 'დღის ტაიმლაინი' : 'Wedding day timeline');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒ“áƒ¦áƒ˜áƒ¡ áƒ¢áƒáƒ˜áƒ›áƒšáƒáƒ˜áƒœáƒ˜' : 'Wedding day timeline');
   }
 
   protected eventTimeline(): string[] {
@@ -618,10 +1034,10 @@ export class App implements OnDestroy {
 
     if (this.currentLanguage() === 'ka') {
       return [
-        '17:00 - სტუმრების მიღება',
-        '17:30 - ცერემონია',
-        '19:00 - ვახშამი',
-        '21:00 - წვეულება'
+        '17:00 - áƒ¡áƒ¢áƒ£áƒ›áƒ áƒ”áƒ‘áƒ˜áƒ¡ áƒ›áƒ˜áƒ¦áƒ”áƒ‘áƒ',
+        '17:30 - áƒªáƒ”áƒ áƒ”áƒ›áƒáƒœáƒ˜áƒ',
+        '19:00 - áƒ•áƒáƒ®áƒ¨áƒáƒ›áƒ˜',
+        '21:00 - áƒ¬áƒ•áƒ”áƒ£áƒšáƒ”áƒ‘áƒ'
       ];
     }
 
@@ -635,17 +1051,17 @@ export class App implements OnDestroy {
 
   protected plusOneLabel(): string {
     return this.content().landing?.plusOneLabel
-      ?? (this.currentLanguage() === 'ka' ? 'პლუს ერთი' : 'Plus one');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒžáƒšáƒ£áƒ¡ áƒ”áƒ áƒ—áƒ˜' : 'Plus one');
   }
 
   protected quickContactLabel(): string {
     return this.content().landing?.quickContactLabel
-      ?? (this.currentLanguage() === 'ka' ? 'სწრაფი კონტაქტი' : 'Quick contact');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒ¡áƒ¬áƒ áƒáƒ¤áƒ˜ áƒ™áƒáƒœáƒ¢áƒáƒ¥áƒ¢áƒ˜' : 'Quick contact');
   }
 
   protected dietaryLabel(): string {
     return this.content().landing?.dietaryLabel
-      ?? (this.currentLanguage() === 'ka' ? 'კვებითი შეზღუდვები' : 'Dietary preferences');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒ™áƒ•áƒ”áƒ‘áƒ˜áƒ—áƒ˜ áƒ¨áƒ”áƒ–áƒ¦áƒ£áƒ“áƒ•áƒ”áƒ‘áƒ˜' : 'Dietary preferences');
   }
 
   protected plusOneOptions(): SelectOption[] {
@@ -656,10 +1072,10 @@ export class App implements OnDestroy {
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { value: '', label: 'აირჩიეთ' },
-        { value: 'Yes', label: 'კი' },
-        { value: 'No', label: 'არა' },
-        { value: 'Maybe', label: 'შესაძლოა' }
+        { value: '', label: 'áƒáƒ˜áƒ áƒ©áƒ˜áƒ”áƒ—' },
+        { value: 'Yes', label: 'áƒ™áƒ˜' },
+        { value: 'No', label: 'áƒáƒ áƒ' },
+        { value: 'Maybe', label: 'áƒ¨áƒ”áƒ¡áƒáƒ«áƒšáƒáƒ' }
       ];
     }
 
@@ -668,79 +1084,79 @@ export class App implements OnDestroy {
 
   protected rsvpNowLabel(): string {
     return this.content().landing?.rsvpNowLabel
-      ?? (this.currentLanguage() === 'ka' ? 'RSVP ახლავე' : 'RSVP now');
+      ?? (this.currentLanguage() === 'ka' ? 'RSVP áƒáƒ®áƒšáƒáƒ•áƒ”' : 'RSVP now');
   }
 
   protected viewDetailsLabel(): string {
     return this.content().landing?.viewDetailsLabel
-      ?? (this.currentLanguage() === 'ka' ? 'დეტალების ნახვა' : 'View details');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒ“áƒ”áƒ¢áƒáƒšáƒ”áƒ‘áƒ˜áƒ¡ áƒœáƒáƒ®áƒ•áƒ' : 'View details');
   }
 
   protected eventInfoEyebrow(): string {
     return this.content().landing?.eventInfoEyebrow
-      ?? (this.currentLanguage() === 'ka' ? 'ღონისძიების ინფორმაცია' : 'Event info');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒ¦áƒáƒœáƒ˜áƒ¡áƒ«áƒ˜áƒ”áƒ‘áƒ˜áƒ¡ áƒ˜áƒœáƒ¤áƒáƒ áƒ›áƒáƒªáƒ˜áƒ' : 'Event info');
   }
 
   protected openMapLabel(): string {
     return this.content().landing?.openMapLabel
-      ?? (this.currentLanguage() === 'ka' ? 'ლოკაციის რუკის გახსნა' : 'Open venue map');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒšáƒáƒ™áƒáƒªáƒ˜áƒ˜áƒ¡ áƒ áƒ£áƒ™áƒ˜áƒ¡ áƒ’áƒáƒ®áƒ¡áƒœáƒ' : 'Open venue map');
   }
 
   protected galleryEyebrow(): string {
     return this.content().landing?.galleryEyebrow
-      ?? (this.currentLanguage() === 'ka' ? 'გალერეა' : 'Gallery');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒ’áƒáƒšáƒ”áƒ áƒ”áƒ' : 'Gallery');
   }
 
   protected galleryTitle(): string {
     return this.content().landing?.galleryTitle
       ?? (this.currentLanguage() === 'ka'
-        ? 'მომენტები რეალური ღონისძიებებიდან'
+        ? 'áƒ›áƒáƒ›áƒ”áƒœáƒ¢áƒ”áƒ‘áƒ˜ áƒ áƒ”áƒáƒšáƒ£áƒ áƒ˜ áƒ¦áƒáƒœáƒ˜áƒ¡áƒ«áƒ˜áƒ”áƒ‘áƒ”áƒ‘áƒ˜áƒ“áƒáƒœ'
         : 'Moments from real celebrations');
   }
 
   protected contactEyebrow(): string {
     return this.content().landing?.contactEyebrow
-      ?? (this.currentLanguage() === 'ka' ? 'კონტაქტი და RSVP' : 'Contact & RSVP');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒ™áƒáƒœáƒ¢áƒáƒ¥áƒ¢áƒ˜ áƒ“áƒ RSVP' : 'Contact & RSVP');
   }
 
   protected contactTitle(): string {
     return this.content().landing?.contactTitle
-      ?? (this.currentLanguage() === 'ka' ? 'RSVP 30 წამში' : 'RSVP in 30 seconds');
+      ?? (this.currentLanguage() === 'ka' ? 'RSVP 30 áƒ¬áƒáƒ›áƒ¨áƒ˜' : 'RSVP in 30 seconds');
   }
 
   protected contactDescription(): string {
     return this.content().landing?.contactDescription
       ?? (this.currentLanguage() === 'ka'
-        ? 'მოკლე ფორმა, მყისიერი გაგზავნა ელფოსტით ან WhatsApp-ით.'
+        ? 'áƒ›áƒáƒ™áƒšáƒ” áƒ¤áƒáƒ áƒ›áƒ, áƒ›áƒ§áƒ˜áƒ¡áƒ˜áƒ”áƒ áƒ˜ áƒ’áƒáƒ’áƒ–áƒáƒ•áƒœáƒ áƒ”áƒšáƒ¤áƒáƒ¡áƒ¢áƒ˜áƒ— áƒáƒœ WhatsApp-áƒ˜áƒ—.'
         : 'Short form, instant send via email or WhatsApp.');
   }
 
   protected sendByEmailLabel(): string {
     return this.content().landing?.sendByEmailLabel
-      ?? (this.currentLanguage() === 'ka' ? 'RSVP გაგზავნა ელფოსტაზე' : 'Send RSVP by email');
+      ?? (this.currentLanguage() === 'ka' ? 'RSVP áƒ’áƒáƒ’áƒ–áƒáƒ•áƒœáƒ áƒ”áƒšáƒ¤áƒáƒ¡áƒ¢áƒáƒ–áƒ”' : 'Send RSVP by email');
   }
 
   protected sendByWhatsappLabel(): string {
     return this.content().landing?.sendByWhatsappLabel
       ?? (this.currentLanguage() === 'ka'
-        ? 'RSVP გაგზავნა WhatsApp-ზე'
+        ? 'RSVP áƒ’áƒáƒ’áƒ–áƒáƒ•áƒœáƒ WhatsApp-áƒ–áƒ”'
         : 'Send RSVP by WhatsApp');
   }
 
   protected responseTimeLabel(): string {
     return this.content().landing?.responseTimeLabel
-      ?? (this.currentLanguage() === 'ka' ? 'პასუხის დრო: 24 საათში' : 'Response time: within 24 hours');
+      ?? (this.currentLanguage() === 'ka' ? 'áƒžáƒáƒ¡áƒ£áƒ®áƒ˜áƒ¡ áƒ“áƒ áƒ: 24 áƒ¡áƒáƒáƒ—áƒ¨áƒ˜' : 'Response time: within 24 hours');
   }
 
   protected openWhatsappLabel(): string {
     return this.content().landing?.openWhatsappLabel
-      ?? (this.currentLanguage() === 'ka' ? 'WhatsApp გახსნა' : 'Open WhatsApp');
+      ?? (this.currentLanguage() === 'ka' ? 'WhatsApp áƒ’áƒáƒ®áƒ¡áƒœáƒ' : 'Open WhatsApp');
   }
 
   protected footerTitle(): string {
     return this.content().landing?.footerTitle
       ?? (this.currentLanguage() === 'ka'
-        ? 'მზად ხართ აღსანიშნავად ჩვენთან ერთად?'
+        ? 'áƒ›áƒ–áƒáƒ“ áƒ®áƒáƒ áƒ— áƒáƒ¦áƒ¡áƒáƒœáƒ˜áƒ¨áƒœáƒáƒ•áƒáƒ“ áƒ©áƒ•áƒ”áƒœáƒ—áƒáƒœ áƒ”áƒ áƒ—áƒáƒ“?'
         : 'Ready to celebrate with us?');
   }
 
@@ -831,7 +1247,7 @@ export class App implements OnDestroy {
     this.trackEvent('rsvp_start', { source: 'contact_form' });
   }
 
-  protected async sendInquiryByEmail(inquiry: ContactInquiry): Promise<void> {
+  protected async sendInquiryByEmail(submission: InquirySubmission): Promise<void> {
     this.onRsvpFormInteraction();
 
     const contactLabels = this.content().contact.labels;
@@ -852,7 +1268,7 @@ export class App implements OnDestroy {
     this.inquiryConfirmation.set('Submitting your inquiry...');
     try {
       await this.contactService.submitInquiry(
-        inquiry,
+        submission,
         labels,
         'email',
         this.contactEmail(),
@@ -860,14 +1276,15 @@ export class App implements OnDestroy {
       );
       this.inquiryConfirmation.set('Your details were sent successfully. Thank you.');
       this.trackEvent('rsvp_complete', { channel: 'email' });
+      this.showToast('success', 'Inquiry Sent', 'Your email inquiry was sent successfully.');
     } catch (error) {
-      this.inquiryConfirmation.set(
-        error instanceof Error ? error.message : 'Failed to submit inquiry.'
-      );
+      const message = error instanceof Error ? error.message : 'Failed to submit inquiry.';
+      this.inquiryConfirmation.set(message);
+      this.showToast('error', 'Inquiry Failed', message);
     }
   }
 
-  protected async sendInquiryByWhatsApp(inquiry: ContactInquiry): Promise<void> {
+  protected async sendInquiryByWhatsApp(submission: InquirySubmission): Promise<void> {
     this.onRsvpFormInteraction();
 
     const contactLabels = this.content().contact.labels;
@@ -888,7 +1305,7 @@ export class App implements OnDestroy {
     this.inquiryConfirmation.set('Submitting your inquiry...');
     try {
       await this.contactService.submitInquiry(
-        inquiry,
+        submission,
         labels,
         'whatsapp',
         this.contactEmail(),
@@ -896,10 +1313,11 @@ export class App implements OnDestroy {
       );
       this.inquiryConfirmation.set('Your details were sent successfully. Thank you.');
       this.trackEvent('rsvp_complete', { channel: 'whatsapp' });
+      this.showToast('success', 'Inquiry Sent', 'Your WhatsApp inquiry was sent successfully.');
     } catch (error) {
-      this.inquiryConfirmation.set(
-        error instanceof Error ? error.message : 'Failed to submit inquiry.'
-      );
+      const message = error instanceof Error ? error.message : 'Failed to submit inquiry.';
+      this.inquiryConfirmation.set(message);
+      this.showToast('error', 'Inquiry Failed', message);
     }
   }
 
@@ -910,8 +1328,25 @@ export class App implements OnDestroy {
     this.isAdminModalOpen.set(false);
     this.isMfaStep.set(false);
     this.adminAuthMessage.set('Admin edit mode enabled.');
+    this.showToast('success', 'Admin Mode Enabled', 'You are now in edit mode.');
     this.document.defaultView?.sessionStorage.setItem('landing_admin_access_token', accessToken);
     void this.loadAdminManagerData();
+  }
+
+  public dismissToast(id: number): void {
+    this.toasts.update((current) => current.filter((toast) => toast.id !== id));
+    const timeout = this.toastTimeouts.get(id);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.toastTimeouts.delete(id);
+    }
+  }
+
+  private showToast(level: ToastLevel, title: string, message: string, durationMs = 4200): void {
+    const id = ++this.toastIdCounter;
+    this.toasts.update((current) => [...current, { id, level, title, message }]);
+    const timeout = setTimeout(() => this.dismissToast(id), durationMs);
+    this.toastTimeouts.set(id, timeout);
   }
 
   private async loadAdminManagerData(): Promise<void> {
@@ -1054,7 +1489,24 @@ export class App implements OnDestroy {
     eventName: string,
     params: Record<string, string | number | boolean>
   ): void {
+    if (this.cookieConsent() !== 'accepted') {
+      return;
+    }
     this.analyticsService.track(this.document.defaultView, eventName, params);
+  }
+
+  private initCookieConsent(): void {
+    const stored = this.document.defaultView?.localStorage.getItem(this.cookieConsentStorageKey);
+    if (stored === 'accepted' || stored === 'rejected') {
+      this.cookieConsent.set(stored);
+      return;
+    }
+    this.cookieConsent.set('unknown');
+  }
+
+  private setCookieConsent(consent: Exclude<CookieConsent, 'unknown'>): void {
+    this.cookieConsent.set(consent);
+    this.document.defaultView?.localStorage.setItem(this.cookieConsentStorageKey, consent);
   }
 
   private navigateTo(url: string): void {
@@ -1090,3 +1542,4 @@ export class App implements OnDestroy {
     return openWizardPlacements.has(placement);
   }
 }
+

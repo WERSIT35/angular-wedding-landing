@@ -11,3 +11,10 @@ export type ContactInquiry = {
   dietary: string;
   message: string;
 };
+
+export type InquirySubmission = {
+  inquiry: ContactInquiry;
+  honeypot: string;
+  formStartedAt: number;
+  captchaToken: string;
+};

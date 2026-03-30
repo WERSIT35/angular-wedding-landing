@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, inject, input, output, signal } from '@angular/core';
 import { SelectOption } from '../../data/event.data';
-import { ContactInquiry } from '../../models/contact.model';
+import { ContactInquiry, InquirySubmission } from '../../models/contact.model';
 import { ContentSection } from '../../models/site-content.model';
 
 @Component({
@@ -11,6 +11,7 @@ import { ContentSection } from '../../models/site-content.model';
 })
 export class ContactSectionComponent implements AfterViewInit, OnDestroy {
   private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly document = this.host.nativeElement.ownerDocument;
   private readonly onOpenWizardRequest = (): void => {
     if (!this.isInlineEditing()) {
       this.openWizard();
@@ -34,6 +35,9 @@ export class ContactSectionComponent implements AfterViewInit, OnDestroy {
   protected readonly wizardOpen = signal(false);
   protected readonly wizardFinished = signal(false);
   protected readonly currentStepIndex = signal(0);
+  protected readonly formStartedAt = signal(0);
+  protected readonly honeypot = signal('');
+  protected readonly captchaToken = signal('');
   protected readonly stepOrder: Array<keyof ContactInquiry> = [
     'name',
     'email',
@@ -79,8 +83,8 @@ export class ContactSectionComponent implements AfterViewInit, OnDestroy {
   public readonly inquiryConfirmation = input.required<string>();
   public readonly isInlineEditing = input<boolean>(false);
 
-  public readonly emailSubmit = output<ContactInquiry>();
-  public readonly whatsappSubmit = output<ContactInquiry>();
+  public readonly emailSubmit = output<InquirySubmission>();
+  public readonly whatsappSubmit = output<InquirySubmission>();
   public readonly formInteraction = output<void>();
   public readonly ctaClick = output<string>();
   public readonly inlineEdit = output<{ path: string; value: string }>();
@@ -99,6 +103,7 @@ export class ContactSectionComponent implements AfterViewInit, OnDestroy {
       return;
     }
     view.removeEventListener('open-wedding-wizard', this.onOpenWizardRequest as EventListener);
+    this.setPageScrollLocked(false);
   }
 
   protected onFormInteraction(): void {
@@ -109,12 +114,17 @@ export class ContactSectionComponent implements AfterViewInit, OnDestroy {
     this.wizardOpen.set(true);
     this.wizardFinished.set(false);
     this.currentStepIndex.set(0);
+    this.formStartedAt.set(Date.now());
+    this.honeypot.set('');
+    this.captchaToken.set('');
     this.formError.set('');
+    this.setPageScrollLocked(true);
   }
 
   protected closeWizard(): void {
     this.wizardOpen.set(false);
     this.formError.set('');
+    this.setPageScrollLocked(false);
   }
 
   protected currentStepField(): keyof ContactInquiry {
@@ -156,21 +166,31 @@ export class ContactSectionComponent implements AfterViewInit, OnDestroy {
     if (!this.validateDraft().valid) {
       return;
     }
-    this.emailSubmit.emit(this.draft());
+    this.emailSubmit.emit(this.buildSubmission());
     this.wizardOpen.set(false);
+    this.setPageScrollLocked(false);
   }
 
   protected submitByWhatsApp(): void {
     if (!this.validateDraft().valid) {
       return;
     }
-    this.whatsappSubmit.emit(this.draft());
+    this.whatsappSubmit.emit(this.buildSubmission());
     this.wizardOpen.set(false);
+    this.setPageScrollLocked(false);
   }
 
   protected updateField(field: keyof ContactInquiry, value: string): void {
     this.draft.update((current) => ({ ...current, [field]: value }));
     this.formError.set('');
+  }
+
+  protected updateHoneypot(value: string): void {
+    this.honeypot.set(value);
+  }
+
+  protected updateCaptchaToken(value: string): void {
+    this.captchaToken.set(value.trim());
   }
 
   protected onContactWhatsappClick(event: MouseEvent): void {
@@ -255,5 +275,47 @@ export class ContactSectionComponent implements AfterViewInit, OnDestroy {
       return;
     }
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  private setPageScrollLocked(locked: boolean): void {
+    const body = this.document.body;
+    const html = this.document.documentElement;
+    if (locked) {
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
+      return;
+    }
+    body.style.overflow = '';
+    html.style.overflow = '';
+  }
+
+  private buildSubmission(): InquirySubmission {
+    return {
+      inquiry: this.draft(),
+      honeypot: this.honeypot(),
+      formStartedAt: this.formStartedAt() || Date.now(),
+      captchaToken: this.captchaToken() || this.readCaptchaTokenFromWindow()
+    };
+  }
+
+  private readCaptchaTokenFromWindow(): string {
+    const view = this.document.defaultView as
+      | (Window & {
+          turnstile?: { getResponse?: () => string };
+          grecaptcha?: { getResponse?: () => string };
+          hcaptcha?: { getResponse?: () => string };
+        })
+      | null;
+
+    if (!view) {
+      return '';
+    }
+
+    return (
+      view.turnstile?.getResponse?.()
+      || view.grecaptcha?.getResponse?.()
+      || view.hcaptcha?.getResponse?.()
+      || ''
+    );
   }
 }
