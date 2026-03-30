@@ -48,12 +48,24 @@ npm run backend:start
 ## API endpoints
 - `GET /health`
 - `GET /api/public/content`
+- `POST /api/public/inquiry`
 - `POST /api/admin/auth/login`
 - `POST /api/admin/auth/mfa/verify`
 - `POST /api/admin/auth/mfa/setup` (requires admin token)
 - `GET /api/admin/content` (requires admin token)
 - `PUT /api/admin/content` (requires admin token)
 - `GET /api/admin/audit` (requires admin token)
+
+## Inquiry delivery (server-side, no client mail app)
+`POST /api/public/inquiry` now submits RSVP details from frontend to backend.
+
+Delivery providers:
+- `RESEND_API_KEY` set: sends real email using Resend API
+- `INQUIRY_WEBHOOK_URL` set: forwards payload to your webhook
+- none set: logs payload on backend (no external delivery)
+
+Optional env:
+- `INQUIRY_FROM_EMAIL` (default: `onboarding@resend.dev`)
 
 ## Storage
 Backend data file:

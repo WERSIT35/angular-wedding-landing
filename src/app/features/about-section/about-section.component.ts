@@ -19,8 +19,8 @@ export class AboutSectionComponent {
   }
 
   protected onAboutAction(event: MouseEvent): void {
+    event.preventDefault();
     if (this.isInlineEditing()) {
-      event.preventDefault();
       return;
     }
     this.onAboutCtaClick();

@@ -18,8 +18,8 @@ export class FooterSectionComponent {
   }
 
   protected onFooterAction(event: MouseEvent): void {
+    event.preventDefault();
     if (this.isInlineEditing()) {
-      event.preventDefault();
       return;
     }
     this.onFooterCtaClick();

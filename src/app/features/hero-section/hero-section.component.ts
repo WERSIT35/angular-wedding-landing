@@ -27,8 +27,8 @@ export class HeroSectionComponent {
   }
 
   protected onPrimaryAction(event: MouseEvent): void {
+    event.preventDefault();
     if (this.isInlineEditing()) {
-      event.preventDefault();
       return;
     }
     this.onPrimaryCtaClick();

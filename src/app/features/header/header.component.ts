@@ -20,7 +20,8 @@ export class HeaderComponent {
     this.languageChange.emit(language);
   }
 
-  protected onHeaderCtaClick(): void {
+  protected onHeaderCtaClick(event: MouseEvent): void {
+    event.preventDefault();
     this.ctaClick.emit('header');
   }
 }

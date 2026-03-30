@@ -101,6 +101,7 @@ export type ContentSection = {
       name: string;
       email: string;
       phone: string;
+      weddingType: string;
       date: string;
       guests: string;
       location: string;
@@ -111,6 +112,7 @@ export type ContentSection = {
       name: string;
       email: string;
       phone: string;
+      weddingType: string;
       guests: string;
       location: string;
       budget: string;

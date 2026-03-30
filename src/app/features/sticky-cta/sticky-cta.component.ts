@@ -12,7 +12,8 @@ export class StickyCtaComponent {
 
   public readonly ctaClick = output<string>();
 
-  protected onStickyRsvpClick(): void {
+  protected onStickyRsvpClick(event: MouseEvent): void {
+    event.preventDefault();
     this.ctaClick.emit('sticky-rsvp');
   }
 

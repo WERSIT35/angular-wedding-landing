@@ -19,125 +19,14 @@
   </div>
 
   <div class="contact-layout">
-    <form class="contact-form" (submit)="$event.preventDefault()" (focusin)="onFormInteraction()">
-      <label>
-        <span
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'contact.labels.name')"
-        >{{ contact().labels.name }}</span>
-        <input #nameInput type="text" [placeholder]="contact().placeholders.name" autocomplete="name" />
-      </label>
-      <label>
-        <span
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'contact.labels.email')"
-        >{{ contact().labels.email }}</span>
-        <input #emailInput type="email" [placeholder]="contact().placeholders.email" autocomplete="email" />
-      </label>
-      <label>
-        <span
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'contact.labels.phone')"
-        >{{ contact().labels.phone }}</span>
-        <input #phoneInput type="tel" [placeholder]="contact().placeholders.phone" autocomplete="tel" />
-      </label>
-      <label>
-        <span
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'contact.labels.date')"
-        >{{ contact().labels.date }}</span>
-        <input #dateInput type="date" />
-      </label>
-      <label>
-        <span
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'contact.labels.guests')"
-        >{{ contact().labels.guests }}</span>
-        <input #guestsInput type="number" [placeholder]="contact().placeholders.guests" min="1" />
-      </label>
-      <label>
-        <span
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'landing.plusOneLabel')"
-        >{{ plusOneLabel() }}</span>
-        <select #plusOneInput>
-          @for (option of plusOneOptions(); track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
-          }
-        </select>
-      </label>
-      <label class="full-width">
-        <span
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'landing.dietaryLabel')"
-        >{{ dietaryLabel() }}</span>
-        <input #dietaryInput type="text" [placeholder]="dietaryLabel()" />
-      </label>
-      <label class="full-width">
-        <span
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'contact.labels.message')"
-        >{{ contact().labels.message }}</span>
-        <textarea #messageInput rows="4" [placeholder]="contact().placeholders.message"></textarea>
-      </label>
-
-      <div class="form-actions full-width">
-        <button
-          class="button button-primary"
-          type="button"
-          (click)="onEmailSubmit({
-            name: nameInput.value,
-            email: emailInput.value,
-            phone: phoneInput.value,
-            date: dateInput.value,
-            guests: guestsInput.value,
-            plusOne: plusOneInput.value,
-            dietary: dietaryInput.value,
-            message: messageInput.value
-          })"
-        >
-          <span
-            [class.inline-live-edit]="isInlineEditing()"
-            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-            (blur)="onInlineEdit($event, 'landing.sendByEmailLabel')"
-          >{{ sendByEmailLabel() }}</span>
-        </button>
-        <button
-          class="button button-secondary"
-          type="button"
-          (click)="onWhatsAppSubmit({
-            name: nameInput.value,
-            email: emailInput.value,
-            phone: phoneInput.value,
-            date: dateInput.value,
-            guests: guestsInput.value,
-            plusOne: plusOneInput.value,
-            dietary: dietaryInput.value,
-            message: messageInput.value
-          })"
-        >
-          <span
-            [class.inline-live-edit]="isInlineEditing()"
-            [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-            (blur)="onInlineEdit($event, 'landing.sendByWhatsappLabel')"
-          >{{ sendByWhatsappLabel() }}</span>
-        </button>
+    <div class="contact-form cards-mode wizard-launch">
+      <p class="question-kicker">Interactive planner</p>
+      <h3>Build your wedding brief in under 2 minutes</h3>
+      <p>One question at a time. Fullscreen. No long form fatigue.</p>
+      <div class="form-actions">
+        <button type="button" class="button button-primary" (click)="openWizard()">Start Wedding Planner</button>
       </div>
-
-      @if (inquiryConfirmation()) {
-        <p class="form-confirmation full-width" role="status" aria-live="polite">
-          {{ inquiryConfirmation() }}
-        </p>
-      }
-    </form>
+    </div>
 
     <aside class="contact-card">
       <p
@@ -187,4 +76,126 @@
       </div>
     </aside>
   </div>
+
+  @if (wizardOpen()) {
+    <div class="wedding-wizard-backdrop" (click)="closeWizard()"></div>
+    <section class="wedding-wizard-modal" role="dialog" aria-modal="true" aria-label="Wedding planner wizard">
+      <header class="wedding-wizard-head">
+        <p class="question-kicker">Wedding planner</p>
+        <strong>{{ progressPercent() }}%</strong>
+      </header>
+      <div class="wizard-progress">
+        <span [style.width.%]="progressPercent()"></span>
+      </div>
+
+      @if (!wizardFinished()) {
+        <article class="question-card single">
+          <p class="question-kicker">Step {{ currentStepIndex() + 1 }} / {{ stepOrder.length }}</p>
+
+          @switch (currentStepField()) {
+            @case ('name') {
+              <h3>{{ contact().labels.name }}</h3>
+              <input type="text" [placeholder]="contact().placeholders.name" [value]="draft().name" (input)="updateField('name', $any($event.target).value)" />
+            }
+            @case ('email') {
+              <h3>{{ contact().labels.email }}</h3>
+              <input type="email" [placeholder]="contact().placeholders.email" [value]="draft().email" (input)="updateField('email', $any($event.target).value)" />
+            }
+            @case ('phone') {
+              <h3>{{ contact().labels.phone }}</h3>
+              <input type="tel" [placeholder]="contact().placeholders.phone" [value]="draft().phone" (input)="updateField('phone', $any($event.target).value)" />
+            }
+            @case ('weddingType') {
+              <h3>{{ contact().labels.weddingType }}</h3>
+              <div class="option-grid">
+                @for (option of weddingTypeOptions; track option) {
+                  <button type="button" class="option-pill" [class.active]="draft().weddingType === option" (click)="updateField('weddingType', option)">
+                    {{ option }}
+                  </button>
+                }
+              </div>
+            }
+            @case ('date') {
+              <h3>{{ contact().labels.date }}</h3>
+              <input type="date" [value]="draft().date" (input)="updateField('date', $any($event.target).value)" />
+            }
+            @case ('guests') {
+              <h3>{{ contact().labels.guests }}</h3>
+              <div class="option-grid">
+                @for (option of guestOptions; track option) {
+                  <button type="button" class="option-pill" [class.active]="draft().guests === option" (click)="updateField('guests', option)">
+                    {{ option }}
+                  </button>
+                }
+              </div>
+              <input type="number" min="1" [placeholder]="contact().placeholders.guests" [value]="draft().guests" (input)="updateField('guests', $any($event.target).value)" />
+            }
+            @case ('location') {
+              <h3>{{ contact().labels.location }}</h3>
+              <div class="option-grid">
+                @for (option of locationOptions; track option) {
+                  <button type="button" class="option-pill" [class.active]="draft().location === option" (click)="updateField('location', option)">
+                    {{ option }}
+                  </button>
+                }
+              </div>
+              <input type="text" [placeholder]="contact().placeholders.location" [value]="draft().location" (input)="updateField('location', $any($event.target).value)" />
+            }
+            @case ('budget') {
+              <h3>{{ contact().labels.budget }}</h3>
+              <div class="option-grid">
+                @for (option of budgetOptions; track option) {
+                  <button type="button" class="option-pill" [class.active]="draft().budget === option" (click)="updateField('budget', option)">
+                    {{ option }}
+                  </button>
+                }
+              </div>
+              <input type="text" [placeholder]="contact().placeholders.budget" [value]="draft().budget" (input)="updateField('budget', $any($event.target).value)" />
+            }
+            @case ('plusOne') {
+              <h3>{{ plusOneLabel() }}</h3>
+              <select [value]="draft().plusOne" (change)="updateField('plusOne', $any($event.target).value)">
+                @for (option of plusOneOptions(); track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            }
+            @case ('dietary') {
+              <h3>{{ dietaryLabel() }}</h3>
+              <input type="text" [placeholder]="dietaryLabel()" [value]="draft().dietary" (input)="updateField('dietary', $any($event.target).value)" />
+            }
+            @case ('message') {
+              <h3>{{ contact().labels.message }}</h3>
+              <textarea rows="5" [placeholder]="contact().placeholders.message" [value]="draft().message" (input)="updateField('message', $any($event.target).value)"></textarea>
+            }
+          }
+        </article>
+
+        @if (formError()) {
+          <p class="form-confirmation form-error" role="alert">{{ formError() }}</p>
+        }
+
+        <div class="wizard-actions">
+          <button type="button" class="button button-ghost" [disabled]="!canGoBack()" (click)="previousStep()">Back</button>
+          <button type="button" class="button button-primary" (click)="nextStep()">Next</button>
+        </div>
+      } @else {
+        <article class="question-card single completion-card">
+          <h3>All set. Your wedding brief is ready.</h3>
+          <p>Choose how you want to send it now.</p>
+        </article>
+
+        <div class="wizard-actions">
+          <button type="button" class="button button-secondary" (click)="submitByWhatsApp()">{{ sendByWhatsappLabel() }}</button>
+          <button type="button" class="button button-primary" (click)="submitByEmail()">{{ sendByEmailLabel() }}</button>
+        </div>
+      }
+
+      @if (inquiryConfirmation()) {
+        <p class="form-confirmation" role="status" aria-live="polite">{{ inquiryConfirmation() }}</p>
+      }
+
+      <button type="button" class="button button-ghost wizard-close" (click)="closeWizard()">Close</button>
+    </section>
+  }
 </section>

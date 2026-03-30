@@ -137,7 +137,9 @@ export class App implements OnDestroy {
     }
 
     defaultView.requestAnimationFrame(() => {
-      const sections = this.document.querySelectorAll<HTMLElement>('main .section, .hero-section, .site-footer');
+      const sections = this.document.querySelectorAll<HTMLElement>(
+        'main .section:not(.contact-section), .hero-section, .site-footer'
+      );
       const observer = new defaultView.IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
@@ -815,6 +817,9 @@ export class App implements OnDestroy {
 
   protected onCtaClick(placement: string): void {
     this.trackEvent('cta_click', { placement });
+    if (this.shouldOpenWizardFromCta(placement)) {
+      this.document.defaultView?.dispatchEvent(new CustomEvent('open-wedding-wizard'));
+    }
   }
 
   protected onRsvpFormInteraction(): void {
@@ -826,7 +831,7 @@ export class App implements OnDestroy {
     this.trackEvent('rsvp_start', { source: 'contact_form' });
   }
 
-  protected sendInquiryByEmail(inquiry: ContactInquiry): void {
+  protected async sendInquiryByEmail(inquiry: ContactInquiry): Promise<void> {
     this.onRsvpFormInteraction();
 
     const contactLabels = this.content().contact.labels;
@@ -834,24 +839,35 @@ export class App implements OnDestroy {
       name: contactLabels.name,
       email: contactLabels.email,
       phone: contactLabels.phone,
+      weddingType: contactLabels.weddingType,
       date: contactLabels.date,
       guests: contactLabels.guests,
+      location: contactLabels.location,
+      budget: contactLabels.budget,
       plusOne: this.plusOneLabel(),
       dietary: this.dietaryLabel(),
       message: contactLabels.message
     };
-    const mailToUrl = this.contactService.buildEmailUrl(inquiry, labels, this.contactEmail());
 
-    this.inquiryConfirmation.set(
-      this.currentLanguage() === 'ka'
-        ? 'მზად არის. თქვენი ელფოსტის აპი ახლა გაიხსნება.'
-        : 'Ready to send. Your email app will open now.'
-    );
-    this.trackEvent('rsvp_complete', { channel: 'email' });
-    this.navigateTo(mailToUrl);
+    this.inquiryConfirmation.set('Submitting your inquiry...');
+    try {
+      await this.contactService.submitInquiry(
+        inquiry,
+        labels,
+        'email',
+        this.contactEmail(),
+        this.contactWhatsAppNumber()
+      );
+      this.inquiryConfirmation.set('Your details were sent successfully. Thank you.');
+      this.trackEvent('rsvp_complete', { channel: 'email' });
+    } catch (error) {
+      this.inquiryConfirmation.set(
+        error instanceof Error ? error.message : 'Failed to submit inquiry.'
+      );
+    }
   }
 
-  protected sendInquiryByWhatsApp(inquiry: ContactInquiry): void {
+  protected async sendInquiryByWhatsApp(inquiry: ContactInquiry): Promise<void> {
     this.onRsvpFormInteraction();
 
     const contactLabels = this.content().contact.labels;
@@ -859,25 +875,32 @@ export class App implements OnDestroy {
       name: contactLabels.name,
       email: contactLabels.email,
       phone: contactLabels.phone,
+      weddingType: contactLabels.weddingType,
       date: contactLabels.date,
       guests: contactLabels.guests,
+      location: contactLabels.location,
+      budget: contactLabels.budget,
       plusOne: this.plusOneLabel(),
       dietary: this.dietaryLabel(),
       message: contactLabels.message
     };
-    const whatsAppUrl = this.contactService.buildWhatsAppUrl(
-      inquiry,
-      labels,
-      this.contactWhatsAppNumber()
-    );
 
-    this.inquiryConfirmation.set(
-      this.currentLanguage() === 'ka'
-        ? 'მზად არის. WhatsApp ჩატი ახლა გაიხსნება.'
-        : 'Ready to send. WhatsApp chat will open now.'
-    );
-    this.trackEvent('rsvp_complete', { channel: 'whatsapp' });
-    this.openInNewTab(whatsAppUrl);
+    this.inquiryConfirmation.set('Submitting your inquiry...');
+    try {
+      await this.contactService.submitInquiry(
+        inquiry,
+        labels,
+        'whatsapp',
+        this.contactEmail(),
+        this.contactWhatsAppNumber()
+      );
+      this.inquiryConfirmation.set('Your details were sent successfully. Thank you.');
+      this.trackEvent('rsvp_complete', { channel: 'whatsapp' });
+    } catch (error) {
+      this.inquiryConfirmation.set(
+        error instanceof Error ? error.message : 'Failed to submit inquiry.'
+      );
+    }
   }
 
   private finishAdminLogin(accessToken: string): void {
@@ -1054,5 +1077,16 @@ export class App implements OnDestroy {
 
   private contactWhatsAppNumber(): string {
     return this.content().contact.channels?.whatsappNumber ?? this.defaultWhatsAppNumber;
+  }
+
+  private shouldOpenWizardFromCta(placement: string): boolean {
+    const openWizardPlacements = new Set([
+      'header',
+      'hero-primary',
+      'about',
+      'footer',
+      'sticky-rsvp'
+    ]);
+    return openWizardPlacements.has(placement);
   }
 }

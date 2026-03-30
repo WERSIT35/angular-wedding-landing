@@ -1,0 +1,215 @@
+.wizard-launch {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.wizard-launch h3 {
+  margin: 0;
+  font-family: var(--font-display-alt);
+  color: var(--ink-strong);
+}
+
+.wizard-launch p {
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.wedding-wizard-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  background:
+    radial-gradient(circle at 15% 12%, rgba(205, 169, 122, 0.22), transparent 36%),
+    rgba(16, 11, 8, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.wedding-wizard-modal {
+  position: fixed;
+  z-index: 96;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  border-radius: 0;
+  border: 0;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(205, 169, 122, 0.2), transparent 36%),
+    linear-gradient(170deg, rgba(255, 252, 247, 0.98), rgba(251, 243, 232, 0.94));
+  box-shadow: 0 34px 86px rgba(11, 8, 6, 0.48);
+  padding: clamp(0.8rem, 2vw, 1.2rem);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
+  gap: 0.85rem;
+  overflow: hidden;
+}
+
+.wedding-wizard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.wizard-progress {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgba(20, 14, 10, 0.12);
+  overflow: hidden;
+}
+
+.wizard-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #c98f58, #ddb27f);
+  transition: width 220ms ease;
+}
+
+.question-card {
+  border: 1px solid rgba(29, 24, 21, 0.11);
+  border-radius: 1.1rem;
+  padding: clamp(0.9rem, 2vw, 1.2rem);
+  background:
+    radial-gradient(circle at 90% 6%, rgba(205, 169, 122, 0.17), transparent 35%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 249, 241, 0.88));
+  box-shadow: 0 12px 24px rgba(42, 27, 13, 0.08);
+  display: grid;
+  gap: 0.8rem;
+}
+
+.question-card.single {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  align-content: start;
+  max-width: 920px;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.question-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  font-weight: 700;
+}
+
+.question-card h3 {
+  margin: 0;
+  font-family: var(--font-display-alt);
+  color: var(--ink-strong);
+  font-size: clamp(1.15rem, 2.2vw, 1.65rem);
+  line-height: 1.2;
+}
+
+.question-card p {
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.question-card input,
+.question-card select,
+.question-card textarea {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid rgba(29, 24, 21, 0.15);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.97);
+  padding: 0.78rem 0.9rem;
+  font: inherit;
+  color: var(--ink-strong);
+}
+
+.question-card textarea {
+  min-height: 8.5rem;
+  resize: vertical;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.55rem;
+}
+
+.option-pill {
+  border: 1px solid rgba(29, 24, 21, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink-strong);
+  padding: 0.5rem 0.85rem;
+  min-height: 2.35rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.option-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(38, 24, 12, 0.09);
+  border-color: rgba(171, 132, 85, 0.44);
+}
+
+.option-pill.active {
+  color: #1a140f;
+  border-color: rgba(205, 169, 122, 0.58);
+  background: linear-gradient(135deg, #f1d6ae, #cda97a);
+  box-shadow: 0 8px 18px rgba(205, 169, 122, 0.2);
+}
+
+.wizard-actions {
+  display: flex;
+  gap: 0.7rem;
+  justify-content: flex-end;
+  max-width: 920px;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.wizard-close {
+  justify-self: center;
+  width: min(920px, 100%);
+}
+
+.form-error {
+  color: #8e2d22;
+  margin: 0;
+  max-width: 920px;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.completion-card {
+  align-content: center;
+  justify-items: start;
+}
+
+@media (max-width: 900px) {
+  .question-card.single,
+  .wizard-actions,
+  .form-error,
+  .wizard-close {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .question-card.single {
+    border-radius: 0.9rem;
+  }
+
+  .option-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-actions .button,
+  .wizard-close {
+    width: 100%;
+  }
+}

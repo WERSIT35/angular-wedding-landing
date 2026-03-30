@@ -5,8 +5,11 @@ type InquiryLabels = {
   name: string;
   email: string;
   phone: string;
+  weddingType: string;
   date: string;
   guests: string;
+  location: string;
+  budget: string;
   plusOne: string;
   dietary: string;
   message: string;
@@ -14,6 +17,7 @@ type InquiryLabels = {
 
 @Injectable({ providedIn: 'root' })
 export class ContactService {
+  private readonly backendApiBase = 'http://localhost:4000';
   private readonly defaultInquiryEmail = 'Eliteweddingsandeventsco1@gmail.com';
   private readonly defaultWhatsAppNumber = '995595930899';
 
@@ -21,16 +25,29 @@ export class ContactService {
     return `https://wa.me/${this.normalizeWhatsAppNumber(whatsAppNumber)}`;
   }
 
-  public buildEmailUrl(inquiry: ContactInquiry, labels: InquiryLabels, inquiryEmail?: string): string {
-    const subject = 'Wedding Planning Inquiry - Elite Weddings';
-    const body = this.buildInquiryBody(inquiry, labels);
-    const targetEmail = inquiryEmail?.trim() || this.defaultInquiryEmail;
-    return `mailto:${targetEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }
+  public async submitInquiry(
+    inquiry: ContactInquiry,
+    labels: InquiryLabels,
+    channel: 'email' | 'whatsapp',
+    inquiryEmail?: string,
+    whatsAppNumber?: string
+  ): Promise<void> {
+    const response = await fetch(`${this.backendApiBase}/api/public/inquiry`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        inquiry,
+        labels,
+        channel,
+        targetEmail: inquiryEmail?.trim() || this.defaultInquiryEmail,
+        targetWhatsApp: this.normalizeWhatsAppNumber(whatsAppNumber)
+      })
+    });
 
-  public buildWhatsAppUrl(inquiry: ContactInquiry, labels: InquiryLabels, whatsAppNumber?: string): string {
-    const text = this.buildInquiryBody(inquiry, labels);
-    return `${this.whatsAppDirectLink(whatsAppNumber)}?text=${encodeURIComponent(text)}`;
+    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    if (!response.ok) {
+      throw new Error(payload.error || 'Failed to submit inquiry.');
+    }
   }
 
   private buildInquiryBody(inquiry: ContactInquiry, labels: InquiryLabels): string {
@@ -41,8 +58,11 @@ export class ContactService {
       `${labels.name}: ${this.valueOrFallback(inquiry.name, notProvided)}`,
       `${labels.email}: ${this.valueOrFallback(inquiry.email, notProvided)}`,
       `${labels.phone}: ${this.valueOrFallback(inquiry.phone, notProvided)}`,
+      `${labels.weddingType}: ${this.valueOrFallback(inquiry.weddingType, notProvided)}`,
       `${labels.date}: ${this.valueOrFallback(inquiry.date, notProvided)}`,
       `${labels.guests}: ${this.valueOrFallback(inquiry.guests, notProvided)}`,
+      `${labels.location}: ${this.valueOrFallback(inquiry.location, notProvided)}`,
+      `${labels.budget}: ${this.valueOrFallback(inquiry.budget, notProvided)}`,
       `${labels.plusOne}: ${this.valueOrFallback(inquiry.plusOne, notProvided)}`,
       `${labels.dietary}: ${this.valueOrFallback(inquiry.dietary, notProvided)}`,
       `${labels.message}:`,
