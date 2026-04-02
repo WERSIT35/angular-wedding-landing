@@ -1,0 +1,30 @@
+node_modules
+.git
+.gitignore
+.angular
+.vscode
+dist
+npm-debug.log*
+Dockerfile*
+k8s
+
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.kubeconfig
+.kube
+
+# Local runtime data and artifacts
+backend/data/*.json
+*.tar

@@ -17,7 +17,7 @@ type InquiryLabels = {
 
 @Injectable({ providedIn: 'root' })
 export class ContactService {
-  private readonly backendApiBase = 'http://localhost:4000';
+  private readonly backendApiBase = '';
   private readonly defaultInquiryEmail = 'Eliteweddingsandeventsco1@gmail.com';
   private readonly defaultWhatsAppNumber = '995595930899';
 

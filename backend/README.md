@@ -28,9 +28,9 @@ npm run start
 4. Public site:
 - `http://localhost:4200`
 
-## Default admin credentials
-- Email: `admin@eliteweddings.local`
-- Password: `ChangeMe123!`
+## Initial admin credentials
+- Email defaults to: `admin@eliteweddings.local` (override via `ADMIN_EMAIL`)
+- Password is generated on first boot if `ADMIN_PASSWORD` is not set, and printed once in backend logs
 
 Change this immediately via environment variables before first start:
 - `ADMIN_EMAIL`
@@ -72,3 +72,25 @@ Backend data file:
 - `backend/data/store.json`
 
 This contains users, MFA state, content JSON, and audit logs.
+
+## PostgreSQL Mode (Recommended)
+
+Backend now supports PostgreSQL storage when `DATABASE_URL` is provided.
+
+### Env vars
+- `DATABASE_URL` (example: `postgresql://user:pass@host:25060/dbname`)
+- `DATABASE_SSL` (`true` for managed DBs)
+- `PGSSLMODE` (`require` for managed DBs)
+
+When `DATABASE_URL` is set:
+- backend stores full app state in PostgreSQL (`app_state` table)
+- if `store.json` exists and DB is empty, backend auto-imports it once
+- `store.json` is ignored for runtime writes after migration
+
+### Local example
+```bash
+$env:DATABASE_URL='postgresql://user:pass@localhost:5432/elitewe'
+$env:DATABASE_SSL='false'
+$env:PGSSLMODE='disable'
+npm run backend:start
+```

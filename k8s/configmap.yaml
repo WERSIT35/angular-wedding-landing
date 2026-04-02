@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wedding-config
+  namespace: wedding-site
+data:
+  FRONTEND_ORIGIN: "https://www.elitewe.com.ge"
+  INQUIRY_FROM_EMAIL: "onboarding@resend.dev"
+  CAPTCHA_PROVIDER: "turnstile"
+  CAPTCHA_REQUIRED: "false"
+  ALLOW_DEV_ORIGINS: "false"

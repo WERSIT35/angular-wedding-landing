@@ -8,6 +8,11 @@ const PORT = Number(process.env.PORT || 4000);
 const INQUIRY_TARGET_EMAIL = 'Eliteweddingsandeventsco1@gmail.com';
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:4200';
 const CORS_ORIGINS = new Set([FRONTEND_ORIGIN, 'http://localhost:5173', 'http://localhost:3000']);
+const ALLOW_DEV_ORIGINS = String(process.env.ALLOW_DEV_ORIGINS || 'false').toLowerCase() === 'true';
+if (!ALLOW_DEV_ORIGINS) {
+  CORS_ORIGINS.delete('http://localhost:5173');
+  CORS_ORIGINS.delete('http://localhost:3000');
+}
 const AUTH_RATE_LIMIT = {
   windowMs: 60_000,
   maxAttempts: 8
@@ -59,26 +64,34 @@ const dailyCounters = {
 };
 
 function setSecurityHeaders(res) {
+  const connectSources = ["'self'"];
+  if (FRONTEND_ORIGIN.startsWith('http://') || FRONTEND_ORIGIN.startsWith('https://')) {
+    connectSources.push(FRONTEND_ORIGIN);
+  }
+
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' http://localhost:4000; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ${connectSources.join(' ')}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`
   );
 }
 
 function sendJson(req, res, statusCode, payload) {
   const origin = req.headers.origin;
-  const allowOrigin = origin && CORS_ORIGINS.has(origin) ? origin : '*';
-  res.writeHead(statusCode, {
+  const headers = {
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     Vary: 'Origin'
-  });
+  };
+  if (origin && CORS_ORIGINS.has(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  res.writeHead(statusCode, headers);
   res.end(JSON.stringify(payload));
 }
 
@@ -137,6 +150,46 @@ function normalizeEmail(input) {
 
 function normalizeText(input) {
   return String(input || '').trim();
+}
+
+function hasMojibakeMarker(value) {
+  return /(?:\u00e1\u0192|\u00c3|\u00c2|\u00e2\u20ac|\ufffd)/u.test(value);
+}
+
+function maybeRepairMojibake(value) {
+  if (typeof value !== 'string' || !hasMojibakeMarker(value)) {
+    return value;
+  }
+
+  const decoded = Buffer.from(value, 'latin1').toString('utf8');
+  const decodedLooksGeorgian = /[\u10a0-\u10ff]/u.test(decoded);
+  const decodedStillBroken = hasMojibakeMarker(decoded);
+
+  if (decodedLooksGeorgian && !decodedStillBroken) {
+    return decoded;
+  }
+
+  return value;
+}
+
+function normalizeContentText(value) {
+  if (typeof value === 'string') {
+    return maybeRepairMojibake(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeContentText(item));
+  }
+
+  if (value && typeof value === 'object') {
+    const cleaned = {};
+    for (const [key, child] of Object.entries(value)) {
+      cleaned[key] = normalizeContentText(child);
+    }
+    return cleaned;
+  }
+
+  return value;
 }
 
 function normalizePhone(input) {
@@ -592,7 +645,7 @@ async function processInquiryQueueTick() {
   inquiryWorkerBusy = true;
   try {
     const delivery = await deliverInquiry(job.deliveryPayload);
-    appendAuditLog({
+    await appendAuditLog({
       action: 'public_inquiry_delivered',
       userId: 'public',
       metadata: {
@@ -605,7 +658,7 @@ async function processInquiryQueueTick() {
       }
     });
   } catch (error) {
-    appendAuditLog({
+    await appendAuditLog({
       action: 'public_inquiry_delivery_failed',
       userId: 'public',
       metadata: {
@@ -629,8 +682,6 @@ function withCors(req, res) {
   const origin = req.headers.origin;
   if (origin && CORS_ORIGINS.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
   }
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -715,8 +766,8 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && url.pathname === '/api/public/content') {
-      const store = loadStore();
-      sendJson(req, res, 200, { content: store.content });
+      const store = await loadStore();
+      sendJson(req, res, 200, { content: normalizeContentText(store.content) });
       return;
     }
 
@@ -846,7 +897,7 @@ const server = http.createServer(async (req, res) => {
       markInquiryDuplicate(dedupeKey);
       incrementDailyCounters(ipKey, identityKey);
 
-      appendAuditLog({
+      await appendAuditLog({
         action: 'public_inquiry_queued',
         userId: 'public',
         metadata: {
@@ -866,7 +917,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && url.pathname === '/api/admin/security/stats') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -891,7 +942,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && url.pathname === '/api/admin/security/alert-test') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -910,7 +961,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      const store = loadStore();
+      const store = await loadStore();
       const body = await getRequestBody(req);
       const email = normalizeEmail(body.email);
       const password = String(body.password || '');
@@ -934,7 +985,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       const accessToken = signToken({ sub: user.id, role: 'admin' }, store.jwtSecret, 60 * 60 * 12);
-      appendAuditLog({ action: 'login', userId: user.id, metadata: { mfa: false } });
+      await appendAuditLog({ action: 'login', userId: user.id, metadata: { mfa: false } });
       sendJson(req, res, 200, { accessToken, user: sanitizeUser(user) });
       return;
     }
@@ -946,7 +997,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      const store = loadStore();
+      const store = await loadStore();
       const body = await getRequestBody(req);
       const tempToken = String(body.tempToken || '');
       const code = String(body.code || '').trim();
@@ -969,7 +1020,7 @@ const server = http.createServer(async (req, res) => {
         if (idx >= 0) {
           valid = true;
           user.recoveryCodes.splice(idx, 1);
-          saveStore(store);
+          await saveStore(store);
         }
       }
 
@@ -979,13 +1030,13 @@ const server = http.createServer(async (req, res) => {
       }
 
       const accessToken = signToken({ sub: user.id, role: 'admin' }, store.jwtSecret, 60 * 60 * 12);
-      appendAuditLog({ action: 'login', userId: user.id, metadata: { mfa: true } });
+      await appendAuditLog({ action: 'login', userId: user.id, metadata: { mfa: true } });
       sendJson(req, res, 200, { accessToken, user: sanitizeUser(user) });
       return;
     }
 
     if (req.method === 'POST' && url.pathname === '/api/admin/auth/mfa/setup') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1006,7 +1057,7 @@ const server = http.createServer(async (req, res) => {
         expiresAt
       });
 
-      appendAuditLog({ action: 'mfa_setup_started', userId: user.id, metadata: {} });
+      await appendAuditLog({ action: 'mfa_setup_started', userId: user.id, metadata: {} });
 
       sendJson(req, res, 200, {
         secret,
@@ -1021,7 +1072,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && url.pathname === '/api/admin/auth/mfa/setup/confirm') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1051,16 +1102,16 @@ const server = http.createServer(async (req, res) => {
       user.mfaSecret = pendingSetup.secret;
       user.mfaEnabled = true;
       user.recoveryCodes = pendingSetup.recoveryCodes;
-      saveStore(store);
+      await saveStore(store);
       pendingMfaSetups.delete(user.id);
 
-      appendAuditLog({ action: 'mfa_setup', userId: user.id, metadata: { confirmed: true } });
+      await appendAuditLog({ action: 'mfa_setup', userId: user.id, metadata: { confirmed: true } });
       sendJson(req, res, 200, { user: sanitizeUser(user) });
       return;
     }
 
     if (req.method === 'POST' && url.pathname === '/api/admin/auth/mfa/disable') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1071,15 +1122,15 @@ const server = http.createServer(async (req, res) => {
       user.mfaSecret = null;
       user.recoveryCodes = [];
       pendingMfaSetups.delete(user.id);
-      saveStore(store);
+      await saveStore(store);
 
-      appendAuditLog({ action: 'mfa_disabled', userId: user.id, metadata: {} });
+      await appendAuditLog({ action: 'mfa_disabled', userId: user.id, metadata: {} });
       sendJson(req, res, 200, { user: sanitizeUser(user) });
       return;
     }
 
     if (req.method === 'GET' && url.pathname === '/api/admin/profile') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1091,7 +1142,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'PUT' && url.pathname === '/api/admin/profile') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1131,14 +1182,14 @@ const server = http.createServer(async (req, res) => {
         user.passwordHash = hash;
       }
 
-      saveStore(store);
-      appendAuditLog({ action: 'profile_update', userId: user.id, metadata: {} });
+      await saveStore(store);
+      await appendAuditLog({ action: 'profile_update', userId: user.id, metadata: {} });
       sendJson(req, res, 200, { user: sanitizeUser(user) });
       return;
     }
 
     if (req.method === 'GET' && url.pathname === '/api/admin/users') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1150,7 +1201,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && url.pathname === '/api/admin/users') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1186,8 +1237,8 @@ const server = http.createServer(async (req, res) => {
       };
 
       store.users.push(newUser);
-      saveStore(store);
-      appendAuditLog({
+      await saveStore(store);
+      await appendAuditLog({
         action: 'user_create',
         userId: user.id,
         metadata: { createdUserId: newUser.id, email: newUser.email }
@@ -1197,7 +1248,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'PUT' && url.pathname === '/api/admin/users') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1240,8 +1291,8 @@ const server = http.createServer(async (req, res) => {
         targetUser.recoveryCodes = [];
       }
 
-      saveStore(store);
-      appendAuditLog({
+      await saveStore(store);
+      await appendAuditLog({
         action: 'user_update',
         userId: user.id,
         metadata: { targetUserId: targetUser.id }
@@ -1251,7 +1302,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'DELETE' && url.pathname === '/api/admin/users') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1281,8 +1332,8 @@ const server = http.createServer(async (req, res) => {
       }
 
       const [removed] = store.users.splice(index, 1);
-      saveStore(store);
-      appendAuditLog({
+      await saveStore(store);
+      await appendAuditLog({
         action: 'user_delete',
         userId: user.id,
         metadata: { targetUserId: targetId, targetEmail: removed.email }
@@ -1292,19 +1343,19 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && url.pathname === '/api/admin/content') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
         return;
       }
 
-      sendJson(req, res, 200, { content: store.content });
+      sendJson(req, res, 200, { content: normalizeContentText(store.content) });
       return;
     }
 
     if (req.method === 'PUT' && url.pathname === '/api/admin/content') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1317,13 +1368,14 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      store.content = body.content;
-      saveStore(store);
+      const normalizedContent = normalizeContentText(body.content);
+      store.content = normalizedContent;
+      await saveStore(store);
 
-      appendAuditLog({
+      await appendAuditLog({
         action: 'content_update',
         userId: user.id,
-        metadata: { contentKeys: Object.keys(body.content) }
+        metadata: { contentKeys: Object.keys(normalizedContent) }
       });
 
       sendJson(req, res, 200, { ok: true });
@@ -1331,7 +1383,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && url.pathname === '/api/admin/audit') {
-      const store = loadStore();
+      const store = await loadStore();
       const user = getAuthUser(req, store);
       if (!user) {
         sendJson(req, res, 401, { error: 'Unauthorized' });
@@ -1359,3 +1411,4 @@ setInterval(() => {
 server.listen(PORT, () => {
   console.log(`[backend] running on http://localhost:${PORT}`);
 });
+

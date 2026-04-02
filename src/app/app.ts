@@ -67,7 +67,7 @@ export class App implements OnDestroy {
   private readonly contactService = inject(ContactService);
 
   private hasTrackedRsvpStart = false;
-  private readonly adminApiBase = 'http://localhost:4000';
+  private readonly adminApiBase = '';
   private readonly defaultContactEmail = 'Eliteweddingsandeventsco1@gmail.com';
   private readonly defaultContactWhatsApp = '+995 595 930 899';
   private readonly defaultWhatsAppNumber = '995595930899';
@@ -127,7 +127,7 @@ export class App implements OnDestroy {
   }
 
   private async loadRemoteContent(): Promise<void> {
-    const endpoints = ['http://localhost:4000/api/public/content'];
+    const endpoints = ['/api/public/content'];
 
     for (const endpoint of endpoints) {
       try {
@@ -255,12 +255,12 @@ export class App implements OnDestroy {
   protected legalLabel(tab: LegalTab): string {
     const ka = this.currentLanguage() === 'ka';
     if (tab === 'terms') {
-      return ka ? 'áƒ¬áƒ”áƒ¡áƒ”áƒ‘áƒ˜ áƒ“áƒ áƒžáƒ˜áƒ áƒáƒ‘áƒ”áƒ‘áƒ˜' : 'Terms & Conditions';
+      return ka ? 'წესები და პირობები' : 'Terms & Conditions';
     }
     if (tab === 'privacy') {
-      return ka ? 'áƒ™áƒáƒœáƒ¤áƒ˜áƒ“áƒ”áƒœáƒªáƒ˜áƒáƒšáƒ£áƒ áƒáƒ‘áƒ˜áƒ¡ áƒžáƒáƒšáƒ˜áƒ¢áƒ˜áƒ™áƒ' : 'Privacy Policy';
+      return ka ? 'კონფიდენციალურობის პოლიტიკა' : 'Privacy Policy';
     }
-    return ka ? 'áƒ¥áƒ£áƒ¥áƒ˜ áƒžáƒáƒšáƒ˜áƒ¢áƒ˜áƒ™áƒ' : 'Cookie Policy';
+    return ka ? 'ქუქი პოლიტიკა' : 'Cookie Policy';
   }
 
   protected legalModalTitle(): string {
@@ -268,7 +268,7 @@ export class App implements OnDestroy {
   }
 
   protected legalUpdatedAt(): string {
-    return this.currentLanguage() === 'ka' ? 'áƒ’áƒáƒœáƒáƒ®áƒšáƒ“áƒ: 2026-03-30' : 'Last updated: 2026-03-30';
+    return this.currentLanguage() === 'ka' ? 'განახლდა: 2026-03-30' : 'Last updated: 2026-03-30';
   }
 
   protected legalSections(): Array<{ title: string; points: string[] }> {
@@ -980,11 +980,11 @@ export class App implements OnDestroy {
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { label: 'áƒ›áƒ—áƒáƒ•áƒáƒ áƒ˜', href: '#home' },
-        { label: 'áƒ“áƒ”áƒ¢áƒáƒšáƒ”áƒ‘áƒ˜', href: '#essentials' },
-        { label: 'áƒ©áƒ•áƒ”áƒœ áƒ¨áƒ”áƒ¡áƒáƒ®áƒ”áƒ‘', href: '#about' },
+        { label: 'მთავარი', href: '#home' },
+        { label: 'დეტალები', href: '#essentials' },
+        { label: 'ჩვენ შესახებ', href: '#about' },
         { label: 'FAQ', href: '#faq' },
-        { label: 'áƒ™áƒáƒœáƒ¢áƒáƒ¥áƒ¢áƒ˜', href: '#contact' }
+        { label: 'კონტაქტი', href: '#contact' }
       ];
     }
 
@@ -992,29 +992,36 @@ export class App implements OnDestroy {
   }
 
   protected eventEssentialsTitle(): string {
-    return this.content().landing?.eventEssentialsTitle
-      ?? (this.currentLanguage() === 'ka' ? 'áƒ›áƒ—áƒáƒ•áƒáƒ áƒ˜ áƒ“áƒ”áƒ¢áƒáƒšáƒ”áƒ‘áƒ˜' : 'Event essentials');
+    return this.resolveLandingText(
+      this.content().landing?.eventEssentialsTitle,
+      'მთავარი დეტალები',
+      'Event essentials'
+    );
   }
 
   protected eventEssentialsDescription(): string {
-    return this.content().landing?.eventEssentialsDescription
-      ?? (this.currentLanguage() === 'ka'
-        ? 'áƒ¡áƒ¢áƒ£áƒ›áƒ áƒ”áƒ‘áƒ˜áƒ¡áƒ—áƒ•áƒ˜áƒ¡ áƒ¡áƒáƒ­áƒ˜áƒ áƒ áƒ§áƒ•áƒ”áƒšáƒáƒ¤áƒ”áƒ áƒ˜ áƒ”áƒ áƒ— áƒ”áƒ™áƒ áƒáƒœáƒ–áƒ”: áƒ—áƒáƒ áƒ˜áƒ¦áƒ˜, áƒ“áƒ áƒ, áƒšáƒáƒ™áƒáƒªáƒ˜áƒ, áƒ“áƒ áƒ”áƒ¡ áƒ™áƒáƒ“áƒ˜ áƒ“áƒ áƒ¢áƒáƒ˜áƒ›áƒšáƒáƒ˜áƒœáƒ˜.'
-        : 'Everything guests need at a glance: date, time, location, dress code, and timeline.');
+    return this.resolveLandingText(
+      this.content().landing?.eventEssentialsDescription,
+      'სტუმრებისთვის საჭირო ყველაფერი ერთ ეკრანზე: თარიღი, დრო, ლოკაცია, დრეს კოდი და ტაიმლაინი.',
+      'Everything guests need at a glance: date, time, location, dress code, and timeline.'
+    );
   }
 
   protected eventEssentials(): { label: string; value: string }[] {
     const editableEssentials = this.content().landing?.eventEssentials;
-    if (editableEssentials?.length) {
+    if (
+      editableEssentials?.length
+      && !editableEssentials.some((item) => this.isMojibakeString(item.label) || this.isMojibakeString(item.value))
+    ) {
       return editableEssentials;
     }
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { label: 'áƒ—áƒáƒ áƒ˜áƒ¦áƒ˜', value: '12 áƒ¡áƒ”áƒ¥áƒ¢áƒ”áƒ›áƒ‘áƒ”áƒ áƒ˜, 2026' },
-        { label: 'áƒ“áƒ áƒ', value: '17:00 áƒªáƒ”áƒ áƒ”áƒ›áƒáƒœáƒ˜áƒ, 19:00 áƒ›áƒ˜áƒ¦áƒ”áƒ‘áƒ' },
-        { label: 'áƒšáƒáƒ™áƒáƒªáƒ˜áƒ', value: 'Wedding Palace, áƒ—áƒ‘áƒ˜áƒšáƒ˜áƒ¡áƒ˜' },
-        { label: 'áƒ“áƒ áƒ”áƒ¡ áƒ™áƒáƒ“áƒ˜', value: 'Formal / Black tie optional' }
+        { label: 'თარიღი', value: '12 სექტემბერი, 2026' },
+        { label: 'დრო', value: '17:00 ცერემონია, 19:00 მიღება' },
+        { label: 'ლოკაცია', value: 'Wedding Palace, თბილისი' },
+        { label: 'დრეს კოდი', value: 'Formal / Black tie optional' }
       ];
     }
 
@@ -1022,22 +1029,25 @@ export class App implements OnDestroy {
   }
 
   protected eventTimelineTitle(): string {
-    return this.content().landing?.eventTimelineTitle
-      ?? (this.currentLanguage() === 'ka' ? 'áƒ“áƒ¦áƒ˜áƒ¡ áƒ¢áƒáƒ˜áƒ›áƒšáƒáƒ˜áƒœáƒ˜' : 'Wedding day timeline');
+    return this.resolveLandingText(
+      this.content().landing?.eventTimelineTitle,
+      'დღის ტაიმლაინი',
+      'Wedding day timeline'
+    );
   }
 
   protected eventTimeline(): string[] {
     const editableTimeline = this.content().landing?.eventTimeline;
-    if (editableTimeline?.length) {
+    if (editableTimeline?.length && !editableTimeline.some((item) => this.isMojibakeString(item))) {
       return editableTimeline;
     }
 
     if (this.currentLanguage() === 'ka') {
       return [
-        '17:00 - áƒ¡áƒ¢áƒ£áƒ›áƒ áƒ”áƒ‘áƒ˜áƒ¡ áƒ›áƒ˜áƒ¦áƒ”áƒ‘áƒ',
-        '17:30 - áƒªáƒ”áƒ áƒ”áƒ›áƒáƒœáƒ˜áƒ',
-        '19:00 - áƒ•áƒáƒ®áƒ¨áƒáƒ›áƒ˜',
-        '21:00 - áƒ¬áƒ•áƒ”áƒ£áƒšáƒ”áƒ‘áƒ'
+        '17:00 - სტუმრების მიღება',
+        '17:30 - ცერემონია',
+        '19:00 - ვახშამი',
+        '21:00 - წვეულება'
       ];
     }
 
@@ -1050,32 +1060,29 @@ export class App implements OnDestroy {
   }
 
   protected plusOneLabel(): string {
-    return this.content().landing?.plusOneLabel
-      ?? (this.currentLanguage() === 'ka' ? 'áƒžáƒšáƒ£áƒ¡ áƒ”áƒ áƒ—áƒ˜' : 'Plus one');
+    return this.resolveLandingText(this.content().landing?.plusOneLabel, 'პლუს ერთი', 'Plus one');
   }
 
   protected quickContactLabel(): string {
-    return this.content().landing?.quickContactLabel
-      ?? (this.currentLanguage() === 'ka' ? 'áƒ¡áƒ¬áƒ áƒáƒ¤áƒ˜ áƒ™áƒáƒœáƒ¢áƒáƒ¥áƒ¢áƒ˜' : 'Quick contact');
+    return this.resolveLandingText(this.content().landing?.quickContactLabel, 'სწრაფი კონტაქტი', 'Quick contact');
   }
 
   protected dietaryLabel(): string {
-    return this.content().landing?.dietaryLabel
-      ?? (this.currentLanguage() === 'ka' ? 'áƒ™áƒ•áƒ”áƒ‘áƒ˜áƒ—áƒ˜ áƒ¨áƒ”áƒ–áƒ¦áƒ£áƒ“áƒ•áƒ”áƒ‘áƒ˜' : 'Dietary preferences');
+    return this.resolveLandingText(this.content().landing?.dietaryLabel, 'კვებითი შეზღუდვები', 'Dietary preferences');
   }
 
   protected plusOneOptions(): SelectOption[] {
     const editableOptions = this.content().landing?.plusOneOptions;
-    if (editableOptions?.length) {
+    if (editableOptions?.length && !editableOptions.some((option) => this.isMojibakeString(option.label))) {
       return editableOptions;
     }
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { value: '', label: 'áƒáƒ˜áƒ áƒ©áƒ˜áƒ”áƒ—' },
-        { value: 'Yes', label: 'áƒ™áƒ˜' },
-        { value: 'No', label: 'áƒáƒ áƒ' },
-        { value: 'Maybe', label: 'áƒ¨áƒ”áƒ¡áƒáƒ«áƒšáƒáƒ' }
+        { value: '', label: 'აირჩიეთ' },
+        { value: 'Yes', label: 'კი' },
+        { value: 'No', label: 'არა' },
+        { value: 'Maybe', label: 'შესაძლოა' }
       ];
     }
 
@@ -1083,81 +1090,83 @@ export class App implements OnDestroy {
   }
 
   protected rsvpNowLabel(): string {
-    return this.content().landing?.rsvpNowLabel
-      ?? (this.currentLanguage() === 'ka' ? 'RSVP áƒáƒ®áƒšáƒáƒ•áƒ”' : 'RSVP now');
+    return this.resolveLandingText(this.content().landing?.rsvpNowLabel, 'RSVP ახლავე', 'RSVP now');
   }
 
   protected viewDetailsLabel(): string {
-    return this.content().landing?.viewDetailsLabel
-      ?? (this.currentLanguage() === 'ka' ? 'áƒ“áƒ”áƒ¢áƒáƒšáƒ”áƒ‘áƒ˜áƒ¡ áƒœáƒáƒ®áƒ•áƒ' : 'View details');
+    return this.resolveLandingText(this.content().landing?.viewDetailsLabel, 'დეტალების ნახვა', 'View details');
   }
 
   protected eventInfoEyebrow(): string {
-    return this.content().landing?.eventInfoEyebrow
-      ?? (this.currentLanguage() === 'ka' ? 'áƒ¦áƒáƒœáƒ˜áƒ¡áƒ«áƒ˜áƒ”áƒ‘áƒ˜áƒ¡ áƒ˜áƒœáƒ¤áƒáƒ áƒ›áƒáƒªáƒ˜áƒ' : 'Event info');
+    return this.resolveLandingText(this.content().landing?.eventInfoEyebrow, 'ღონისძიების ინფორმაცია', 'Event info');
   }
 
   protected openMapLabel(): string {
-    return this.content().landing?.openMapLabel
-      ?? (this.currentLanguage() === 'ka' ? 'áƒšáƒáƒ™áƒáƒªáƒ˜áƒ˜áƒ¡ áƒ áƒ£áƒ™áƒ˜áƒ¡ áƒ’áƒáƒ®áƒ¡áƒœáƒ' : 'Open venue map');
+    return this.resolveLandingText(this.content().landing?.openMapLabel, 'ლოკაციის რუკის გახსნა', 'Open venue map');
   }
 
   protected galleryEyebrow(): string {
-    return this.content().landing?.galleryEyebrow
-      ?? (this.currentLanguage() === 'ka' ? 'áƒ’áƒáƒšáƒ”áƒ áƒ”áƒ' : 'Gallery');
+    return this.resolveLandingText(this.content().landing?.galleryEyebrow, 'გალერეა', 'Gallery');
   }
 
   protected galleryTitle(): string {
-    return this.content().landing?.galleryTitle
-      ?? (this.currentLanguage() === 'ka'
-        ? 'áƒ›áƒáƒ›áƒ”áƒœáƒ¢áƒ”áƒ‘áƒ˜ áƒ áƒ”áƒáƒšáƒ£áƒ áƒ˜ áƒ¦áƒáƒœáƒ˜áƒ¡áƒ«áƒ˜áƒ”áƒ‘áƒ”áƒ‘áƒ˜áƒ“áƒáƒœ'
-        : 'Moments from real celebrations');
+    return this.resolveLandingText(
+      this.content().landing?.galleryTitle,
+      'მომენტები რეალური ღონისძიებებიდან',
+      'Moments from real celebrations'
+    );
   }
 
   protected contactEyebrow(): string {
-    return this.content().landing?.contactEyebrow
-      ?? (this.currentLanguage() === 'ka' ? 'áƒ™áƒáƒœáƒ¢áƒáƒ¥áƒ¢áƒ˜ áƒ“áƒ RSVP' : 'Contact & RSVP');
+    return this.resolveLandingText(this.content().landing?.contactEyebrow, 'კონტაქტი და RSVP', 'Contact & RSVP');
   }
 
   protected contactTitle(): string {
-    return this.content().landing?.contactTitle
-      ?? (this.currentLanguage() === 'ka' ? 'RSVP 30 áƒ¬áƒáƒ›áƒ¨áƒ˜' : 'RSVP in 30 seconds');
+    return this.resolveLandingText(this.content().landing?.contactTitle, 'RSVP 30 წამში', 'RSVP in 30 seconds');
   }
 
   protected contactDescription(): string {
-    return this.content().landing?.contactDescription
-      ?? (this.currentLanguage() === 'ka'
-        ? 'áƒ›áƒáƒ™áƒšáƒ” áƒ¤áƒáƒ áƒ›áƒ, áƒ›áƒ§áƒ˜áƒ¡áƒ˜áƒ”áƒ áƒ˜ áƒ’áƒáƒ’áƒ–áƒáƒ•áƒœáƒ áƒ”áƒšáƒ¤áƒáƒ¡áƒ¢áƒ˜áƒ— áƒáƒœ WhatsApp-áƒ˜áƒ—.'
-        : 'Short form, instant send via email or WhatsApp.');
+    return this.resolveLandingText(
+      this.content().landing?.contactDescription,
+      'მოკლე ფორმა, მყისიერი გაგზავნა ელფოსტით ან WhatsApp-ით.',
+      'Short form, instant send via email or WhatsApp.'
+    );
   }
 
   protected sendByEmailLabel(): string {
-    return this.content().landing?.sendByEmailLabel
-      ?? (this.currentLanguage() === 'ka' ? 'RSVP áƒ’áƒáƒ’áƒ–áƒáƒ•áƒœáƒ áƒ”áƒšáƒ¤áƒáƒ¡áƒ¢áƒáƒ–áƒ”' : 'Send RSVP by email');
+    return this.resolveLandingText(
+      this.content().landing?.sendByEmailLabel,
+      'RSVP გაგზავნა ელფოსტაზე',
+      'Send RSVP by email'
+    );
   }
 
   protected sendByWhatsappLabel(): string {
-    return this.content().landing?.sendByWhatsappLabel
-      ?? (this.currentLanguage() === 'ka'
-        ? 'RSVP áƒ’áƒáƒ’áƒ–áƒáƒ•áƒœáƒ WhatsApp-áƒ–áƒ”'
-        : 'Send RSVP by WhatsApp');
+    return this.resolveLandingText(
+      this.content().landing?.sendByWhatsappLabel,
+      'RSVP გაგზავნა WhatsApp-ზე',
+      'Send RSVP by WhatsApp'
+    );
   }
 
   protected responseTimeLabel(): string {
-    return this.content().landing?.responseTimeLabel
-      ?? (this.currentLanguage() === 'ka' ? 'áƒžáƒáƒ¡áƒ£áƒ®áƒ˜áƒ¡ áƒ“áƒ áƒ: 24 áƒ¡áƒáƒáƒ—áƒ¨áƒ˜' : 'Response time: within 24 hours');
+    return this.resolveLandingText(
+      this.content().landing?.responseTimeLabel,
+      'პასუხის დრო: 24 საათში',
+      'Response time: within 24 hours'
+    );
   }
 
   protected openWhatsappLabel(): string {
-    return this.content().landing?.openWhatsappLabel
-      ?? (this.currentLanguage() === 'ka' ? 'WhatsApp áƒ’áƒáƒ®áƒ¡áƒœáƒ' : 'Open WhatsApp');
+    return this.resolveLandingText(this.content().landing?.openWhatsappLabel, 'WhatsApp გახსნა', 'Open WhatsApp');
   }
 
   protected footerTitle(): string {
-    return this.content().landing?.footerTitle
-      ?? (this.currentLanguage() === 'ka'
-        ? 'áƒ›áƒ–áƒáƒ“ áƒ®áƒáƒ áƒ— áƒáƒ¦áƒ¡áƒáƒœáƒ˜áƒ¨áƒœáƒáƒ•áƒáƒ“ áƒ©áƒ•áƒ”áƒœáƒ—áƒáƒœ áƒ”áƒ áƒ—áƒáƒ“?'
-        : 'Ready to celebrate with us?');
+    return this.resolveLandingText(
+      this.content().landing?.footerTitle,
+      'მზად ხართ აღსანიშნავად ჩვენთან ერთად?',
+      'Ready to celebrate with us?'
+    );
   }
 
   protected editHeroSection(): void {
@@ -1454,7 +1463,14 @@ export class App implements OnDestroy {
   private resolvedContent(language: Language): ContentSection {
     const base = structuredClone(CONTENT[language]) as Record<string, unknown>;
     const remote = (this.remoteContent()?.[language] ?? {}) as Record<string, unknown>;
-    return this.deepMerge(base, remote) as ContentSection;
+    const merged = this.deepMerge(base, remote) as ContentSection;
+
+    if (language !== 'ka') {
+      return merged;
+    }
+
+    // Replace corrupted mojibake strings in Georgian content with safe English fallbacks.
+    return this.sanitizeMojibake(merged, CONTENT.en as unknown as Record<string, unknown>) as ContentSection;
   }
 
   private deepMerge(
@@ -1483,6 +1499,51 @@ export class App implements OnDestroy {
       result[key] = value;
     }
     return result;
+  }
+
+  private sanitizeMojibake(
+    value: unknown,
+    fallbackValue: unknown
+  ): unknown {
+    if (typeof value === 'string') {
+      if (this.isMojibakeString(value) && typeof fallbackValue === 'string') {
+        return fallbackValue;
+      }
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      const fallbackArray = Array.isArray(fallbackValue) ? fallbackValue : [];
+      return value.map((item, index) => this.sanitizeMojibake(item, fallbackArray[index]));
+    }
+
+    if (value && typeof value === 'object') {
+      const fallbackObject = fallbackValue && typeof fallbackValue === 'object'
+        ? (fallbackValue as Record<string, unknown>)
+        : {};
+      const cleaned: Record<string, unknown> = {};
+      for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+        cleaned[key] = this.sanitizeMojibake(child, fallbackObject[key]);
+      }
+      return cleaned;
+    }
+
+    return value;
+  }
+
+  private isMojibakeString(value: string): boolean {
+    return /�|ï¿½|áƒ|â€|Ã|Â/.test(value);
+  }
+
+  private resolveLandingText(
+    value: string | undefined,
+    kaFallback: string,
+    enFallback: string
+  ): string {
+    if (typeof value === 'string' && value.trim() && !this.isMojibakeString(value)) {
+      return value;
+    }
+    return this.currentLanguage() === 'ka' ? kaFallback : enFallback;
   }
 
   private trackEvent(

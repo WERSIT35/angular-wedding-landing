@@ -639,4 +639,3 @@ export const CONTENT: Record<Language, ContentSection> = {
     }
   }
 };
-
