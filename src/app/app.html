@@ -1,4 +1,4 @@
-<div
+﻿<div
   class="page-shell"
   [attr.lang]="currentLanguage()"
   [class.lang-ka]="currentLanguage() === 'ka'"
@@ -166,9 +166,9 @@
       (ctaClick)="onCtaClick($event)"
     />
     <section class="legal-launch-block" aria-label="Legal information">
-      <p class="legal-launch-copy">
+            <p class="legal-launch-copy">
         {{ currentLanguage() === 'ka'
-          ? 'საიტის გამოყენებით ეთანხმებით წესებს, კონფიდენციალურობის და ქუქი პოლიტიკას.'
+          ? 'saitis gamoyenebit etanxmebit chvens wesebs, konfidencialurobis da quki politikas.'
           : 'By using this website, you agree to our terms, privacy policy, and cookie policy.' }}
       </p>
       <div class="legal-actions">
@@ -238,6 +238,14 @@
           (click)="adminManagerTab.set('users')"
         >
           Users
+        </button>
+        <button
+          type="button"
+          class="button button-ghost"
+          [class.active]="adminManagerTab() === 'content'"
+          (click)="openAdminManager('content')"
+        >
+          Content
         </button>
       </div>
 
@@ -372,6 +380,52 @@
         </div>
       }
 
+      @if (adminManagerTab() === 'content') {
+        <h3>Content editor</h3>
+        <p class="admin-auth-message">
+          Edit any site field as JSON, apply to preview, then save globally.
+        </p>
+        <div class="admin-manager-actions">
+          <button
+            type="button"
+            class="button button-ghost"
+            [class.active]="adminContentDraftLanguage() === 'en'"
+            (click)="setAdminContentDraftLanguage('en')"
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            class="button button-ghost"
+            [class.active]="adminContentDraftLanguage() === 'ka'"
+            (click)="setAdminContentDraftLanguage('ka')"
+          >
+            KA
+          </button>
+          <button type="button" class="button button-ghost" (click)="refreshAdminContentDraft()">
+            Reload Draft
+          </button>
+          <button type="button" class="button button-secondary" (click)="formatAdminContentDraft()">
+            Format JSON
+          </button>
+          <button type="button" class="button button-primary" (click)="applyAdminContentDraft()">
+            Apply to Preview
+          </button>
+          <button type="button" class="button button-primary" (click)="saveAdminEdits()">
+            Save changes
+          </button>
+        </div>
+        <label>
+          {{ adminContentDraftLanguage().toUpperCase() }} content JSON
+          <textarea
+            [value]="adminContentDraft()"
+            (input)="adminContentDraft.set($any($event.target).value)"
+            rows="20"
+            spellcheck="false"
+          ></textarea>
+        </label>
+      }
+
       @if (adminManagerMessage()) {
         <p class="admin-auth-message">{{ adminManagerMessage() }}</p>
       }
@@ -415,7 +469,7 @@
 
       <div class="legal-footer-actions">
         <button type="button" class="button button-primary" (click)="closeLegalModal()">
-          {{ currentLanguage() === 'ka' ? 'დახურვა' : 'Close' }}
+          {{ currentLanguage() === 'ka' ? 'daxurva' : 'Close' }}
         </button>
       </div>
     </section>
@@ -424,21 +478,17 @@
   @if (cookieConsent() === 'unknown') {
     <section class="cookie-consent" role="dialog" aria-live="polite" aria-label="Cookie consent">
       <p>
-        {{
-          currentLanguage() === 'ka'
-            ? 'ეს საიტი იყენებს აუცილებელ ქუქებს ფუნქციონირებისთვის და სურვილისამებრ ანალიტიკურ ქუქებს გამოცდილების გასაუმჯობესებლად.'
-            : 'This site uses essential cookies for functionality and optional analytics cookies to improve your experience.'
-        }}
+        {{ currentLanguage() === 'ka' ? 'es saiti iyenebs aucilebel qukebs funqcionalistvis da survilisamebr analitikur qukebs gamocdilebis gasaumjobeseblad.' : 'This site uses essential cookies for functionality and optional analytics cookies to improve your experience.' }}
       </p>
       <div class="cookie-consent-actions">
         <button type="button" class="button button-primary" (click)="acceptCookies()">
-          {{ currentLanguage() === 'ka' ? 'დავეთანხმები' : 'Accept' }}
+          {{ currentLanguage() === 'ka' ? 'davetanxmebi' : 'Accept' }}
         </button>
         <button type="button" class="button button-ghost" (click)="rejectCookies()">
-          {{ currentLanguage() === 'ka' ? 'უარვყოფ' : 'Reject' }}
+          {{ currentLanguage() === 'ka' ? 'uarvyof' : 'Reject' }}
         </button>
         <button type="button" class="button button-ghost" (click)="openLegalModal('cookies')">
-          {{ currentLanguage() === 'ka' ? 'ქუქი პოლიტიკა' : 'Cookie Policy' }}
+          {{ currentLanguage() === 'ka' ? 'quki politika' : 'Cookie Policy' }}
         </button>
       </div>
     </section>
@@ -449,7 +499,7 @@
       <article class="toast" [class.toast-success]="toast.level === 'success'" [class.toast-error]="toast.level === 'error'">
         <header class="toast-head">
           <strong>{{ toast.title }}</strong>
-          <button type="button" class="toast-close" (click)="dismissToast(toast.id)" aria-label="Dismiss notification">×</button>
+          <button type="button" class="toast-close" (click)="dismissToast(toast.id)" aria-label="Dismiss notification">&times;</button>
         </header>
         <p>{{ toast.message }}</p>
       </article>
@@ -688,3 +738,5 @@
     }
   </style>
 </div>
+
+

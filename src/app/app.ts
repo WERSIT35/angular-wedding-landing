@@ -6,7 +6,6 @@ import {
   GALLERY_PHOTOS,
   MAP_LINK,
   PLUS_ONE_OPTIONS,
-  PRIMARY_NAV_ITEMS,
   SelectOption
 } from './data/event.data';
 import { CONTENT } from './data/site-content.data';
@@ -85,11 +84,13 @@ export class App implements OnDestroy {
   protected readonly adminAuthMessage = signal('');
   protected readonly isMfaStep = signal(false);
   protected readonly isAdminManagerOpen = signal(false);
-  protected readonly adminManagerTab = signal<'profile' | 'users'>('profile');
+  protected readonly adminManagerTab = signal<'profile' | 'users' | 'content'>('profile');
   protected readonly adminProfile = signal<AdminUser | null>(null);
   protected readonly adminUsers = signal<AdminUser[]>([]);
   protected readonly adminManagerMessage = signal('');
   protected readonly adminUsersFilter = signal('');
+  protected readonly adminContentDraftLanguage = signal<Language>('en');
+  protected readonly adminContentDraft = signal('');
   protected readonly hasUnsavedAdminChanges = signal(false);
   protected readonly mfaSetup = signal<{ otpauthUrl: string; expiresInSec: number } | null>(null);
   protected readonly activeInlineEditor = signal<
@@ -255,12 +256,12 @@ export class App implements OnDestroy {
   protected legalLabel(tab: LegalTab): string {
     const ka = this.currentLanguage() === 'ka';
     if (tab === 'terms') {
-      return ka ? 'წესები და პირობები' : 'Terms & Conditions';
+      return ka ? 'wesebi da pirobebi' : 'Terms & Conditions';
     }
     if (tab === 'privacy') {
-      return ka ? 'კონფიდენციალურობის პოლიტიკა' : 'Privacy Policy';
+      return ka ? 'konfidentsialurobis politika' : 'Privacy Policy';
     }
-    return ka ? 'ქუქი პოლიტიკა' : 'Cookie Policy';
+    return ka ? 'quqi politika' : 'Cookie Policy';
   }
 
   protected legalModalTitle(): string {
@@ -268,7 +269,7 @@ export class App implements OnDestroy {
   }
 
   protected legalUpdatedAt(): string {
-    return this.currentLanguage() === 'ka' ? 'განახლდა: 2026-03-30' : 'Last updated: 2026-03-30';
+    return this.currentLanguage() === 'ka' ? 'ganaxlda: 2026-03-30' : 'Last updated: 2026-03-30';
   }
 
   protected legalSections(): Array<{ title: string; points: string[] }> {
@@ -279,45 +280,45 @@ export class App implements OnDestroy {
       if (ka) {
         return [
           {
-            title: '1. მომსახურების მოცულობა',
+            title: '1. momsaxurebis motsuloba',
             points: [
-              'Elite Weddings & Events Co. გთავაზობთ ქორწილის დაგეგმვას, კოორდინაციას და საკონსულტაციო მომსახურებას.',
-              'საბოლოო მომსახურების სია, ვადები და პასუხისმგებლობები განისაზღვრება ხელშეკრულებით ან წერილობითი შეთავაზებით.'
+              'Elite Weddings & Events Co. gtavazobt qorwilis dagegmvas, koordinatsias da sakonsultatsio momsaxurebas.',
+              'saboloo momsaxurebis sia, vadebi da pasuxismgeblobebi ganisazghvreba xelshekrulebit an werilobiti shetavazebit.'
             ]
           },
           {
-            title: '2. დაჯავშნა და გადახდები',
+            title: '2. dajavshna da gadaxdebi',
             points: [
-              'დაჯავშნა ძალაში შედის მხოლოდ ხელშეკრულების/დადასტურების და წინასწარი გადახდის შემდეგ.',
-              'დაგვიანებულმა გადახდამ შეიძლება გამოიწვიოს სერვისის შეჩერება ან დაჯავშნილი თარიღის დაკარგვა.'
+              'dajavshna dzalashi shedis mxolod xelshekrulebis/dadasturebis da winaswari gadaxdis shemdeg.',
+              'dagvianebulma gadaxdam sheidzleba gamoiwvios servisis shechereba an dajavshnili tarighis dakargva.'
             ]
           },
           {
-            title: '3. გაუქმება, გადატანა და დაბრუნება',
+            title: '3. gauqmeba, gadatana da dabruneba',
             points: [
-              'გაუქმების და თანხის დაბრუნების პირობები განისაზღვრება ინდივიდუალური ხელშეკრულების მიხედვით.',
-              'თარიღის ცვლილება დამოკიდებულია ვენდორებისა და ლოკაციის ხელმისაწვდომობაზე და შეიძლება მოიცავდეს დამატებით ხარჯებს.'
+              'gauqmebis da tanxis dabrunebis pirobebi ganisazghvreba individualuri xelshekrulebis mixedvit.',
+              'tarighis tsvlileba damokidebulia vendorebisa da lokatsiis xelmisawvdomobaze da sheidzleba moitsavdes damatebit xarjebs.'
             ]
           },
           {
-            title: '4. მესამე მხარის ვენდორები',
+            title: '4. mesame mxaris vendorebi',
             points: [
-              'ფოტოგრაფი, ვიდეოგრაფი, ქეითერინგი, ტრანსპორტი, მუსიკა და სხვა მომწოდებლები შეიძლება იყვნენ დამოუკიდებელი კონტრაქტორები.',
-              'კომპანია პასუხისმგებელია კოორდინაციაზე, მაგრამ არა მესამე მხარის დამოუკიდებელ დარღვევებზე.'
+              'fotografi, videografi, qeiteringi, transporti, musika da sxva momwodeblebi sheidzleba iyvnen damoukidebeli kontraqtorebi.',
+              'kompania pasuxismgebelia koordinatsiaze, magram ara mesame mxaris damoukidebel darghvevebze.'
             ]
           },
           {
-            title: '5. პასუხისმგებლობის შეზღუდვა',
+            title: '5. pasuxismgeblobis shezghudva',
             points: [
-              'ფორს-მაჟორის შემთხვევებში (ამინდი, სტიქია, სახელმწიფო შეზღუდვები და სხვა) ვალდებულებები სრულდება შესაბამისი კანონისა და ხელშეკრულების მიხედვით.',
-              'პასუხისმგებლობის ლიმიტი, თუ სხვა რამ არ არის მოთხოვნილი კანონით, შემოიფარგლება რეალურად გადახდილი მომსახურების თანხით.'
+              'fors-mazhoris shemtxvevebshi (amindi, stiqia, saxelmwifo shezghudvebi da sxva) valdebulebebi sruldeba shesabamisi kanonisa da xelshekrulebis mixedvit.',
+              'pasuxismgeblobis limiti, tu sxva ram ar aris motxovnili kanonit, shemoifargleba realurad gadaxdili momsaxurebis tanxit.'
             ]
           },
           {
-            title: '6. ინტელექტუალური საკუთრება და სამართალი',
+            title: '6. inteleqtualuri sakutreba da samartali',
             points: [
-              'საიტის ტექსტები, ფოტოები და ბრენდული ელემენტები დაცულია და მათი უნებართვო გამოყენება აკრძალულია.',
-              'დავების შემთხვევაში, თუ ხელშეკრულებით სხვა რამ არ არის გათვალისწინებული, გამოიყენება საქართველოს კანონმდებლობა.'
+              'saitis teqstebi, fotoebi da brenduli elementebi datsulia da mati unebartvo gamoyeneba akrdzalulia.',
+              'davebis shemtxvevashi, tu xelshekrulebit sxva ram ar aris gatvaliswinebuli, gamoiyeneba saqartvelos kanonmdebloba.'
             ]
           }
         ];
@@ -373,45 +374,45 @@ export class App implements OnDestroy {
       if (ka) {
         return [
           {
-            title: '1. რა მონაცემებს ვაგროვებთ',
+            title: '1. ra monatsemebs vagrovebt',
             points: [
-              'საკონტაქტო ფორმის მონაცემები: სახელი, ელფოსტა, ტელეფონი, ღონისძიების დეტალები.',
-              'ტექნიკური/უსაფრთხოების მონაცემები: IP მისამართი, ანტი-სპამის სიგნალები, მოთხოვნის ლოგები.'
+              'sakontaqto formis monatsemebi: saxeli, elfosta, telefoni, ghonisdziebis detalebi.',
+              'teqnikuri/usafrtxoebis monatsemebi: IP misamarti, anti-spamis signalebi, motxovnis logebi.'
             ]
           },
           {
-            title: '2. დამუშავების მიზანი',
+            title: '2. damushavebis mizani',
             points: [
-              'თქვენს მოთხოვნაზე პასუხისთვის, შეთავაზების მოსამზადებლად და მომსახურების გასაწევად.',
-              'პერსონალური მონაცემები არ იყიდება და არ ქირავდება მესამე პირებზე.'
+              'tqvens motxovnaze pasuxistvis, shetavazebis mosamzadeblad da momsaxurebis gasawevad.',
+              'personaluri monatsemebi ar iyideba da ar qiravdeba mesame pirebze.'
             ]
           },
           {
-            title: '3. მესამე პირებთან გაზიარება',
+            title: '3. mesame pirebtan gaziareba',
             points: [
-              'მონაცემები შეიძლება გაზიარდეს მხოლოდ საჭირო ტექნიკურ სერვის-პროვაიდერებთან (მაგ.: ჰოსტინგი, ელფოსტის მიწოდება).',
-              'ამ პარტნიორებს ევალებათ კონფიდენციალურობისა და უსაფრთხოების დაცვა.'
+              'monatsemebi sheidzleba gaziardes mxolod sachiro teqnikur servis-provaiderebtan (mag.: hostingi, elfostis miwodeba).',
+              'am partniorebs evalebat konfidentsialurobisa da usafrtxoebis datsva.'
             ]
           },
           {
-            title: '4. შენახვის ვადები და უსაფრთხოება',
+            title: '4. shenaxvis vadebi da usafrtxoeba',
             points: [
-              'მონაცემები ინახება იმდენ ხანს, რამდენიც საჭიროა მომსახურებისთვის და სამართლებრივი ვალდებულებების შესასრულებლად.',
-              'ვიყენებთ გონივრულ ტექნიკურ და ორგანიზაციულ ზომებს მონაცემთა დასაცავად.'
+              'monatsemebi inaxeba imden xans, ramdenits sachiroa momsaxurebistvis da samartlebrivi valdebulebebis shesasruleblad.',
+              'viyenebt gonivrul teqnikur da organizatsiul zomebs monatsemta dasatsavad.'
             ]
           },
           {
-            title: '5. თქვენი უფლებები',
+            title: '5. tqveni uflebebi',
             points: [
-              'კანონის ფარგლებში შეგიძლიათ მოითხოვოთ მონაცემებზე წვდომა, შესწორება, წაშლა ან შეზღუდვა.',
-              `მიმართეთ: ${this.contactEmail()}.`
+              'kanonis farglebshi shegidzliat moitxovot monatsemebze wvdoma, shesworeba, washla an shezghudva.',
+              `mimartet: ${this.contactEmail()}.`
             ]
           },
           {
-            title: '6. საერთაშორისო გადაცემა და არასრულწლოვნები',
+            title: '6. saertashoriso gadatsema da arasrulwlovnebi',
             points: [
-              'თუ მონაცემები მუშავდება უცხო ქვეყანაში მყოფი პროვაიდერის მიერ, გამოიყენება შესაბამისი დაცვის ზომები.',
-              'სერვისი არ არის განკუთვნილი არასრულწლოვნების მიერ დამოუკიდებელი ხელშეკრულებისთვის.'
+              'tu monatsemebi mushavdeba utsxo qveyanashi myofi provaideris mier, gamoiyeneba shesabamisi datsvis zomebi.',
+              'servisi ar aris gankutvnili arasrulwlovnebis mier damoukidebeli xelshekrulebistvis.'
             ]
           }
         ];
@@ -466,31 +467,31 @@ export class App implements OnDestroy {
     if (ka) {
       return [
         {
-          title: '1. რა არის ქუქი',
+          title: '1. ra aris quqi',
           points: [
-            'ქუქი არის მცირე ფაილი, რომელიც ინახება თქვენს ბრაუზერში და ეხმარება საიტის მუშაობას.',
-            'ქუქები შეიძლება იყოს აუცილებელი ფუნქციონირებისთვის ან ანალიტიკისთვის.'
+            'quqi aris mtsire faili, romelits inaxeba tqvens brauzershi da exmareba saitis mushaobas.',
+            'quqebi sheidzleba iyos autsilebeli funqtsionirebistvis an analitikistvis.'
           ]
         },
         {
-          title: '2. ქუქების ტიპები',
+          title: '2. quqebis tipebi',
           points: [
-            'აუცილებელი ქუქები: უსაფრთხოება, სესია, ფორმების ძირითადი ფუნქციონირება.',
-            'ანალიტიკური ქუქები: აგრეგირებული სტატისტიკა (მხოლოდ თანხმობის შემთხვევაში).'
+            'autsilebeli quqebi: usafrtxoeba, sesia, formebis dziritadi funqtsionireba.',
+            'analitikuri quqebi: agregirebuli statistika (mxolod tanxmobis shemtxvevashi).'
           ]
         },
         {
-          title: '3. თანხმობა და მართვა',
+          title: '3. tanxmoba da martva',
           points: [
-            'საიტზე პირველ ვიზიტზე შეგიძლიათ დაადასტუროთ ან უარყოთ არასავალდებულო ქუქები.',
-            'ქუქების კონტროლი/წაშლა ასევე შესაძლებელია ბრაუზერის პარამეტრებიდან.'
+            'saitze pirvel vizitze shegidzliat daadasturot an uaryot arasavaldebulo quqebi.',
+            'quqebis kontroli/washla aseve shesadzlebelia brauzeris parametrebidan.'
           ]
         },
         {
-          title: '4. ვადები',
+          title: '4. vadebi',
           points: [
-            'სესიური ქუქები იშლება ბრაუზერის დახურვისას.',
-            'მუდმივი ქუქები ინახება კონკრეტული ვადით ან ხელით წაშლამდე.'
+            'sesiuri quqebi ishleba brauzeris daxurvisas.',
+            'mudmivi quqebi inaxeba konkretuli vadit an xelit washlamde.'
           ]
         }
       ];
@@ -640,10 +641,14 @@ export class App implements OnDestroy {
     }
   }
 
-  protected openAdminManager(tab: 'profile' | 'users'): void {
+  protected openAdminManager(tab: 'profile' | 'users' | 'content'): void {
     this.adminManagerTab.set(tab);
     this.isAdminManagerOpen.set(true);
     this.adminManagerMessage.set('');
+    if (tab === 'content') {
+      this.adminContentDraftLanguage.set(this.currentLanguage());
+      this.refreshAdminContentDraft();
+    }
     void this.loadAdminManagerData();
   }
 
@@ -902,6 +907,54 @@ export class App implements OnDestroy {
     void this.loadAdminUsers();
   }
 
+  protected setAdminContentDraftLanguage(language: Language): void {
+    this.adminContentDraftLanguage.set(language);
+    this.refreshAdminContentDraft();
+  }
+
+  protected refreshAdminContentDraft(): void {
+    const language = this.adminContentDraftLanguage();
+    const content = this.resolvedContent(language);
+    this.adminContentDraft.set(JSON.stringify(content, null, 2));
+  }
+
+  protected formatAdminContentDraft(): void {
+    try {
+      const parsed = JSON.parse(this.adminContentDraft()) as unknown;
+      this.adminContentDraft.set(JSON.stringify(parsed, null, 2));
+      this.adminManagerMessage.set('Content JSON formatted.');
+    } catch {
+      this.adminManagerMessage.set('Content JSON is invalid.');
+    }
+  }
+
+  protected applyAdminContentDraft(): void {
+    const language = this.adminContentDraftLanguage();
+    try {
+      const parsed = JSON.parse(this.adminContentDraft()) as unknown;
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        this.adminManagerMessage.set('Content JSON must be an object.');
+        return;
+      }
+
+      const remote = structuredClone(this.remoteContent() ?? {});
+      remote[language] = parsed as ContentSection;
+      this.remoteContent.set(remote);
+      this.hasUnsavedAdminChanges.set(true);
+      this.adminManagerMessage.set(
+        `Applied ${language.toUpperCase()} content to preview. Click "Save changes" to persist.`
+      );
+      this.showToast(
+        'info',
+        'Preview Updated',
+        `${language.toUpperCase()} content draft applied locally.`
+      );
+    } catch {
+      this.adminManagerMessage.set('Content JSON is invalid.');
+      this.showToast('error', 'Invalid JSON', 'Fix JSON errors before applying content draft.');
+    }
+  }
+
   protected filteredAdminUsers(): AdminUser[] {
     const filter = this.adminUsersFilter().trim().toLowerCase();
     const sorted = [...this.adminUsers()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -973,28 +1026,13 @@ export class App implements OnDestroy {
   }
 
   protected primaryNavItems(): NavItem[] {
-    const editableItems = this.content().navItems;
-    if (editableItems.length > 0) {
-      return editableItems;
-    }
-
-    if (this.currentLanguage() === 'ka') {
-      return [
-        { label: 'მთავარი', href: '#home' },
-        { label: 'დეტალები', href: '#essentials' },
-        { label: 'ჩვენ შესახებ', href: '#about' },
-        { label: 'FAQ', href: '#faq' },
-        { label: 'კონტაქტი', href: '#contact' }
-      ];
-    }
-
-    return PRIMARY_NAV_ITEMS;
+    return this.content().navItems;
   }
 
   protected eventEssentialsTitle(): string {
     return this.resolveLandingText(
       this.content().landing?.eventEssentialsTitle,
-      'მთავარი დეტალები',
+      'mtavari detalebi',
       'Event essentials'
     );
   }
@@ -1002,26 +1040,31 @@ export class App implements OnDestroy {
   protected eventEssentialsDescription(): string {
     return this.resolveLandingText(
       this.content().landing?.eventEssentialsDescription,
-      'სტუმრებისთვის საჭირო ყველაფერი ერთ ეკრანზე: თარიღი, დრო, ლოკაცია, დრეს კოდი და ტაიმლაინი.',
+      'stumrebistvis sachiro yvelaferi ert ekranze: tarighi, dro, lokatsia, dres kodi da taimlaini.',
       'Everything guests need at a glance: date, time, location, dress code, and timeline.'
     );
   }
 
   protected eventEssentials(): { label: string; value: string }[] {
     const editableEssentials = this.content().landing?.eventEssentials;
-    if (
-      editableEssentials?.length
-      && !editableEssentials.some((item) => this.isMojibakeString(item.label) || this.isMojibakeString(item.value))
-    ) {
-      return editableEssentials;
+    if (editableEssentials?.length) {
+      const safeEssentials = editableEssentials.filter(
+        (item): item is { label: string; value: string } => this.isEssentialItem(item)
+      );
+      if (
+        safeEssentials.length === editableEssentials.length
+        && !safeEssentials.some((item) => this.isMojibakeString(item.label) || this.isMojibakeString(item.value))
+      ) {
+        return safeEssentials;
+      }
     }
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { label: 'თარიღი', value: '12 სექტემბერი, 2026' },
-        { label: 'დრო', value: '17:00 ცერემონია, 19:00 მიღება' },
-        { label: 'ლოკაცია', value: 'Wedding Palace, თბილისი' },
-        { label: 'დრეს კოდი', value: 'Formal / Black tie optional' }
+        { label: 'tarighi', value: '12 seqtemberi, 2026' },
+        { label: 'dro', value: '17:00 tseremonia, 19:00 migheba' },
+        { label: 'lokatsia', value: 'Wedding Palace, tbilisi' },
+        { label: 'dres kodi', value: 'Formal / Black tie optional' }
       ];
     }
 
@@ -1031,23 +1074,29 @@ export class App implements OnDestroy {
   protected eventTimelineTitle(): string {
     return this.resolveLandingText(
       this.content().landing?.eventTimelineTitle,
-      'დღის ტაიმლაინი',
+      'dghis taimlaini',
       'Wedding day timeline'
     );
   }
 
   protected eventTimeline(): string[] {
     const editableTimeline = this.content().landing?.eventTimeline;
-    if (editableTimeline?.length && !editableTimeline.some((item) => this.isMojibakeString(item))) {
-      return editableTimeline;
+    if (editableTimeline?.length) {
+      const safeTimeline = editableTimeline.filter((item): item is string => typeof item === 'string');
+      if (
+        safeTimeline.length === editableTimeline.length
+        && !safeTimeline.some((item) => this.isMojibakeString(item))
+      ) {
+        return safeTimeline;
+      }
     }
 
     if (this.currentLanguage() === 'ka') {
       return [
-        '17:00 - სტუმრების მიღება',
-        '17:30 - ცერემონია',
-        '19:00 - ვახშამი',
-        '21:00 - წვეულება'
+        '17:00 - stumrebis migheba',
+        '17:30 - tseremonia',
+        '19:00 - vaxshami',
+        '21:00 - wveuleba'
       ];
     }
 
@@ -1060,29 +1109,37 @@ export class App implements OnDestroy {
   }
 
   protected plusOneLabel(): string {
-    return this.resolveLandingText(this.content().landing?.plusOneLabel, 'პლუს ერთი', 'Plus one');
+    return this.resolveLandingText(this.content().landing?.plusOneLabel, 'plus erti', 'Plus one');
   }
 
   protected quickContactLabel(): string {
-    return this.resolveLandingText(this.content().landing?.quickContactLabel, 'სწრაფი კონტაქტი', 'Quick contact');
+    return this.resolveLandingText(this.content().landing?.quickContactLabel, 'swrafi kontaqti', 'Quick contact');
   }
 
   protected dietaryLabel(): string {
-    return this.resolveLandingText(this.content().landing?.dietaryLabel, 'კვებითი შეზღუდვები', 'Dietary preferences');
+    return this.resolveLandingText(this.content().landing?.dietaryLabel, 'kvebiti shezghudvebi', 'Dietary preferences');
   }
 
   protected plusOneOptions(): SelectOption[] {
     const editableOptions = this.content().landing?.plusOneOptions;
-    if (editableOptions?.length && !editableOptions.some((option) => this.isMojibakeString(option.label))) {
-      return editableOptions;
+    if (editableOptions?.length) {
+      const safeOptions = editableOptions.filter(
+        (option): option is SelectOption => this.isSelectOptionItem(option)
+      );
+      if (
+        safeOptions.length === editableOptions.length
+        && !safeOptions.some((option) => this.isMojibakeString(option.label))
+      ) {
+        return safeOptions;
+      }
     }
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { value: '', label: 'აირჩიეთ' },
-        { value: 'Yes', label: 'კი' },
-        { value: 'No', label: 'არა' },
-        { value: 'Maybe', label: 'შესაძლოა' }
+        { value: '', label: 'airchiet' },
+        { value: 'Yes', label: 'ki' },
+        { value: 'No', label: 'ara' },
+        { value: 'Maybe', label: 'shesadzloa' }
       ];
     }
 
@@ -1090,45 +1147,45 @@ export class App implements OnDestroy {
   }
 
   protected rsvpNowLabel(): string {
-    return this.resolveLandingText(this.content().landing?.rsvpNowLabel, 'RSVP ახლავე', 'RSVP now');
+    return this.resolveLandingText(this.content().landing?.rsvpNowLabel, 'RSVP axlave', 'RSVP now');
   }
 
   protected viewDetailsLabel(): string {
-    return this.resolveLandingText(this.content().landing?.viewDetailsLabel, 'დეტალების ნახვა', 'View details');
+    return this.resolveLandingText(this.content().landing?.viewDetailsLabel, 'detalebis naxva', 'View details');
   }
 
   protected eventInfoEyebrow(): string {
-    return this.resolveLandingText(this.content().landing?.eventInfoEyebrow, 'ღონისძიების ინფორმაცია', 'Event info');
+    return this.resolveLandingText(this.content().landing?.eventInfoEyebrow, 'ghonisdziebis informatsia', 'Event info');
   }
 
   protected openMapLabel(): string {
-    return this.resolveLandingText(this.content().landing?.openMapLabel, 'ლოკაციის რუკის გახსნა', 'Open venue map');
+    return this.resolveLandingText(this.content().landing?.openMapLabel, 'lokatsiis rukis gaxsna', 'Open venue map');
   }
 
   protected galleryEyebrow(): string {
-    return this.resolveLandingText(this.content().landing?.galleryEyebrow, 'გალერეა', 'Gallery');
+    return this.resolveLandingText(this.content().landing?.galleryEyebrow, 'galerea', 'Gallery');
   }
 
   protected galleryTitle(): string {
     return this.resolveLandingText(
       this.content().landing?.galleryTitle,
-      'მომენტები რეალური ღონისძიებებიდან',
+      'momentebi realuri ghonisdziebebidan',
       'Moments from real celebrations'
     );
   }
 
   protected contactEyebrow(): string {
-    return this.resolveLandingText(this.content().landing?.contactEyebrow, 'კონტაქტი და RSVP', 'Contact & RSVP');
+    return this.resolveLandingText(this.content().landing?.contactEyebrow, 'kontaqti da RSVP', 'Contact & RSVP');
   }
 
   protected contactTitle(): string {
-    return this.resolveLandingText(this.content().landing?.contactTitle, 'RSVP 30 წამში', 'RSVP in 30 seconds');
+    return this.resolveLandingText(this.content().landing?.contactTitle, 'RSVP 30 wamshi', 'RSVP in 30 seconds');
   }
 
   protected contactDescription(): string {
     return this.resolveLandingText(
       this.content().landing?.contactDescription,
-      'მოკლე ფორმა, მყისიერი გაგზავნა ელფოსტით ან WhatsApp-ით.',
+      'mokle forma, myisieri gagzavna elfostit an WhatsApp-it.',
       'Short form, instant send via email or WhatsApp.'
     );
   }
@@ -1136,7 +1193,7 @@ export class App implements OnDestroy {
   protected sendByEmailLabel(): string {
     return this.resolveLandingText(
       this.content().landing?.sendByEmailLabel,
-      'RSVP გაგზავნა ელფოსტაზე',
+      'RSVP gagzavna elfostaze',
       'Send RSVP by email'
     );
   }
@@ -1144,7 +1201,7 @@ export class App implements OnDestroy {
   protected sendByWhatsappLabel(): string {
     return this.resolveLandingText(
       this.content().landing?.sendByWhatsappLabel,
-      'RSVP გაგზავნა WhatsApp-ზე',
+      'RSVP gagzavna WhatsApp-ze',
       'Send RSVP by WhatsApp'
     );
   }
@@ -1152,19 +1209,19 @@ export class App implements OnDestroy {
   protected responseTimeLabel(): string {
     return this.resolveLandingText(
       this.content().landing?.responseTimeLabel,
-      'პასუხის დრო: 24 საათში',
+      'pasuxis dro: 24 saatshi',
       'Response time: within 24 hours'
     );
   }
 
   protected openWhatsappLabel(): string {
-    return this.resolveLandingText(this.content().landing?.openWhatsappLabel, 'WhatsApp გახსნა', 'Open WhatsApp');
+    return this.resolveLandingText(this.content().landing?.openWhatsappLabel, 'WhatsApp gaxsna', 'Open WhatsApp');
   }
 
   protected footerTitle(): string {
     return this.resolveLandingText(
       this.content().landing?.footerTitle,
-      'მზად ხართ აღსანიშნავად ჩვენთან ერთად?',
+      'mzad xart aghsanishnavad chventan ertad?',
       'Ready to celebrate with us?'
     );
   }
@@ -1463,14 +1520,8 @@ export class App implements OnDestroy {
   private resolvedContent(language: Language): ContentSection {
     const base = structuredClone(CONTENT[language]) as Record<string, unknown>;
     const remote = (this.remoteContent()?.[language] ?? {}) as Record<string, unknown>;
-    const merged = this.deepMerge(base, remote) as ContentSection;
-
-    if (language !== 'ka') {
-      return merged;
-    }
-
-    // Replace corrupted mojibake strings in Georgian content with safe English fallbacks.
-    return this.sanitizeMojibake(merged, CONTENT.en as unknown as Record<string, unknown>) as ContentSection;
+    const merged = this.deepMerge(base, remote);
+    return this.normalizeContentText(merged) as ContentSection;
   }
 
   private deepMerge(
@@ -1501,34 +1552,72 @@ export class App implements OnDestroy {
     return result;
   }
 
-  private sanitizeMojibake(
-    value: unknown,
-    fallbackValue: unknown
-  ): unknown {
-    if (typeof value === 'string') {
-      if (this.isMojibakeString(value) && typeof fallbackValue === 'string') {
-        return fallbackValue;
-      }
+  private hasMojibakeMarker(value: string): boolean {
+    return /(?:\u00e1\u0192|\u00c3|\u00c2|\u00e2\u20ac|\ufffd)/u.test(value);
+  }
+
+  private maybeRepairMojibake(value: string): string {
+    if (!this.hasMojibakeMarker(value)) {
       return value;
     }
 
+    let decoded = value;
+    try {
+      decoded = decodeURIComponent(
+        value
+          .split('')
+          .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
+          .join('')
+      );
+    } catch {
+      return value;
+    }
+
+    const decodedLooksGeorgian = /[\u10a0-\u10ff]/u.test(decoded);
+    const decodedStillBroken = this.hasMojibakeMarker(decoded);
+    if (decodedLooksGeorgian && !decodedStillBroken) {
+      return decoded;
+    }
+
+    return value;
+  }
+
+  private normalizeContentText(value: unknown): unknown {
+    if (typeof value === 'string') {
+      return this.maybeRepairMojibake(value);
+    }
+
     if (Array.isArray(value)) {
-      const fallbackArray = Array.isArray(fallbackValue) ? fallbackValue : [];
-      return value.map((item, index) => this.sanitizeMojibake(item, fallbackArray[index]));
+      return value.map((item) => this.normalizeContentText(item));
     }
 
     if (value && typeof value === 'object') {
-      const fallbackObject = fallbackValue && typeof fallbackValue === 'object'
-        ? (fallbackValue as Record<string, unknown>)
-        : {};
       const cleaned: Record<string, unknown> = {};
       for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
-        cleaned[key] = this.sanitizeMojibake(child, fallbackObject[key]);
+        cleaned[key] = this.normalizeContentText(child);
       }
       return cleaned;
     }
 
     return value;
+  }
+
+  private isEssentialItem(value: unknown): value is { label: string; value: string } {
+    return Boolean(
+      value
+      && typeof value === 'object'
+      && typeof (value as { label?: unknown }).label === 'string'
+      && typeof (value as { value?: unknown }).value === 'string'
+    );
+  }
+
+  private isSelectOptionItem(value: unknown): value is SelectOption {
+    return Boolean(
+      value
+      && typeof value === 'object'
+      && typeof (value as { value?: unknown }).value === 'string'
+      && typeof (value as { label?: unknown }).label === 'string'
+    );
   }
 
   private isMojibakeString(value: string): boolean {
@@ -1603,4 +1692,5 @@ export class App implements OnDestroy {
     return openWizardPlacements.has(placement);
   }
 }
+
 
