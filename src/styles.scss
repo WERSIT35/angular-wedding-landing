@@ -4,7 +4,6 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+10A0-10FF, U+1C90-1CBF, U+2D00-2D2F;
 }
 
 @font-face {
@@ -13,7 +12,6 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+10A0-10FF, U+1C90-1CBF, U+2D00-2D2F;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Dancing+Script:wght@400..700&family=Montserrat:wght@400;500;600;700&family=Noto+Sans+Georgian:wght@400;500;600;700&family=Noto+Serif+Georgian:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800&display=swap');
@@ -58,24 +56,25 @@ body {
   color: var(--ink-strong);
 }
 
-body.lang-ka .page-shell * {
+body.lang-ka .page-shell,
+body.lang-ka .page-shell *,
+body.lang-ka .page-shell *::before,
+body.lang-ka .page-shell *::after {
   font-family: var(--font-georgian-body) !important;
 }
 
-body.lang-ka .page-shell .hero-copy h2,
-body.lang-ka .page-shell .section-heading h2,
-body.lang-ka .page-shell .service-card h3,
-body.lang-ka .page-shell .package-card h3,
-body.lang-ka .page-shell .destination-card h3,
-body.lang-ka .page-shell .portfolio-card h3,
-body.lang-ka .page-shell .blog-card h3,
-body.lang-ka .page-shell .extra-card h3,
-body.lang-ka .page-shell .faq-list summary {
-  font-family: var(--font-georgian-display) !important;
+body.lang-ka .page-shell .brand-name,
+body.lang-ka .page-shell .brand-hero-title,
+body.lang-ka .page-shell .inline-logo-font {
+  font-family: var(--font-logo-script) !important;
 }
 
-body.lang-ka .page-shell .brand-name,
-body.lang-ka .page-shell .brand-hero-title {
+body.lang-ka .page-shell [lang='en']:not(.brand-name):not(.inline-logo-font) {
+  font-family: var(--font-body) !important;
+}
+
+body.lang-ka .page-shell .brand-name[lang='en'],
+body.lang-ka .page-shell .inline-logo-font[lang='en'] {
   font-family: var(--font-logo-script) !important;
 }
 
@@ -110,7 +109,7 @@ a {
 }
 
 .inline-logo-font {
-  font-family: var(--font-body) !important;
+  font-family: var(--font-logo-script) !important;
   white-space: nowrap;
   font-size: 1em;
   font-weight: 400;

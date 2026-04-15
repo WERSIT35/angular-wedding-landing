@@ -20,11 +20,11 @@
 
   <div class="contact-layout">
     <div class="contact-form cards-mode wizard-launch">
-      <p class="question-kicker">Interactive planner</p>
-      <h3>Build your wedding brief in under 2 minutes</h3>
-      <p>One question at a time. Fullscreen. No long form fatigue.</p>
+      <p class="question-kicker" lang="en">Interactive planner</p>
+      <h3 lang="en">Build your wedding brief in under 2 minutes</h3>
+      <p lang="en">One question at a time. Fullscreen. No long form fatigue.</p>
       <div class="form-actions">
-        <button type="button" class="button button-primary" (click)="openWizard()">Start Wedding Planner</button>
+        <button type="button" class="button button-primary" (click)="openWizard()" lang="en">Start Wedding Planner</button>
       </div>
     </div>
 
@@ -37,7 +37,7 @@
       >{{ quickContactLabel() }}</p>
       <ul>
         <li>
-          <strong>Email:</strong>
+          <strong lang="en">Email:</strong>
           <span
             [class.inline-live-edit]="isInlineEditing()"
             [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
@@ -45,7 +45,7 @@
           >{{ contactEmail() }}</span>
         </li>
         <li>
-          <strong>WhatsApp:</strong>
+          <strong lang="en">WhatsApp:</strong>
           <span
             [class.inline-live-edit]="isInlineEditing()"
             [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"

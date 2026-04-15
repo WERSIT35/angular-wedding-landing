@@ -86,6 +86,7 @@ export type ContentSection = {
     eyebrow: string;
     title: string;
     answer: string;
+    answers?: string[];
     items: string[];
   };
   extras: {

@@ -35,9 +35,15 @@ ssh root@YOUR_DROPLET_IP "sudo /usr/local/bin/k3s ctr images import /root/weddin
 Update these values before deploy:
 - image names in `backend-deployment.yaml` and `frontend-deployment.yaml`
 - `FRONTEND_ORIGIN` in `configmap.yaml`
+- `INQUIRY_FROM_EMAIL` in `configmap.yaml` (use your verified sender, e.g. `noreply@elitewe.com.ge`)
 - ingress host in `ingress.yaml`
 - secrets in `secret.template.yaml` (template only; not auto-applied by kustomize)
 - Ensure sensitive values in `secret.template.yaml` are replaced before applying
+
+### Resend + MX conflict note
+- Keep your existing root MX (`@`) for mailbox provider (Google/Zoho/etc).
+- Resend sending uses `send.elitewe.com.ge` records and does not conflict with root MX.
+- If you enable Resend receiving, prefer subdomain MX (e.g. `inbound.elitewe.com.ge`) instead of replacing root MX.
 
 Create/update the runtime secret explicitly:
 

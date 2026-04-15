@@ -5,7 +5,7 @@ metadata:
   namespace: wedding-site
 data:
   FRONTEND_ORIGIN: "https://www.elitewe.com.ge"
-  INQUIRY_FROM_EMAIL: "onboarding@resend.dev"
+  INQUIRY_FROM_EMAIL: "eliteweddingsandeventsco1@gmail.com"
   CAPTCHA_PROVIDER: "turnstile"
   CAPTCHA_REQUIRED: "false"
   ALLOW_DEV_ORIGINS: "false"

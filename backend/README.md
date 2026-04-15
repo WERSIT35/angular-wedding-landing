@@ -65,7 +65,19 @@ Delivery providers:
 - none set: logs payload on backend (no external delivery)
 
 Optional env:
-- `INQUIRY_FROM_EMAIL` (default: `onboarding@resend.dev`)
+- `INQUIRY_FROM_EMAIL` (default: `onboarding@resend.dev`, recommended: `noreply@elitewe.com.ge`)
+
+### Resend domain DNS (elitewe.com.ge)
+Recommended DNS setup to avoid MX conflicts:
+- Sending (required):
+  - `TXT resend._domainkey` -> your Resend DKIM value
+  - `MX send` -> `feedback-smtp.eu-west-1.amazonses.com` (priority `10`)
+  - `TXT send` -> `v=spf1 include:amazonses.com ~all`
+- Receiving (only if needed):
+  - Prefer a subdomain MX, for example:
+    - `MX inbound` -> `inbound-smtp.eu-west-1.amazonaws.com` (priority `10`)
+  - Then receive mail on `*@inbound.elitewe.com.ge`
+  - Keep root domain MX (`@`) with your existing mailbox provider to avoid conflict
 
 ## Storage
 Backend data file:

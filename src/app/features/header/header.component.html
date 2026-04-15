@@ -4,17 +4,20 @@
     <span class="brand-name" lang="en">{{ brandName() }}</span>
   </a>
 
-  <nav class="site-nav" aria-label="Primary">
-    @for (item of navItems(); track item.label) {
-      <a [href]="item.href">{{ item.label }}</a>
-    }
-  </nav>
+  @if (navItems().length > 0) {
+    <nav class="site-nav" aria-label="Primary">
+      @for (item of navItems(); track item.label) {
+        <a [href]="item.href">{{ item.label }}</a>
+      }
+    </nav>
+  }
 
   <div class="header-actions">
-    <div class="language-toggle" aria-label="Language switcher">
+    <div class="language-toggle" aria-label="Language switcher" [attr.data-lang]="currentLanguage()">
       <button
         type="button"
         [class.active]="currentLanguage() === 'en'"
+        [attr.aria-pressed]="currentLanguage() === 'en'"
         (click)="setLanguage('en')"
       >
         EN
@@ -22,6 +25,7 @@
       <button
         type="button"
         [class.active]="currentLanguage() === 'ka'"
+        [attr.aria-pressed]="currentLanguage() === 'ka'"
         (click)="setLanguage('ka')"
       >
         KA

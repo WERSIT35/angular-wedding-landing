@@ -24,8 +24,8 @@
         <p
           [class.inline-live-edit]="isInlineEditing()"
           [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'faq.answer')"
-        >{{ faq().answer }}</p>
+          (blur)="onInlineEdit($event, 'faq.answers.' + i)"
+        >{{ faq().answers?.[i] ?? faq().answer }}</p>
       </details>
     }
   </div>

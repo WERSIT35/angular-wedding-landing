@@ -61,6 +61,8 @@ type CookieConsent = 'unknown' | 'accepted' | 'rejected';
   encapsulation: ViewEncapsulation.None
 })
 export class App implements OnDestroy {
+  private readonly logoText = 'Elite Weddings & Events Co.';
+
   private readonly document = inject(DOCUMENT);
   private readonly analyticsService = inject(AnalyticsService);
   private readonly contactService = inject(ContactService);
@@ -1005,6 +1007,15 @@ export class App implements OnDestroy {
     return text;
   }
 
+  protected withLogoFont(text: string): string {
+    if (!text) {
+      return '';
+    }
+    return text
+      .split(this.logoText)
+      .join('<span class="inline-logo-font" lang="en">Elite Weddings & Events Co.</span>');
+  }
+
   protected heroDescriptionHtml(): string {
     const description = this.content().hero.description;
     if (this.currentLanguage() !== 'ka') {
@@ -1521,7 +1532,11 @@ export class App implements OnDestroy {
     const base = structuredClone(CONTENT[language]) as Record<string, unknown>;
     const remote = (this.remoteContent()?.[language] ?? {}) as Record<string, unknown>;
     const merged = this.deepMerge(base, remote);
-    return this.normalizeContentText(merged) as ContentSection;
+    const normalized = this.normalizeContentText(merged);
+    if (language === 'ka') {
+      return this.transliterateKaContent(normalized) as ContentSection;
+    }
+    return normalized as ContentSection;
   }
 
   private deepMerge(
@@ -1600,6 +1615,70 @@ export class App implements OnDestroy {
     }
 
     return value;
+  }
+
+  private transliterateKaContent(value: unknown): unknown {
+    if (typeof value === 'string') {
+      return this.transliterateGeorgianToLatin(value);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.transliterateKaContent(item));
+    }
+
+    if (value && typeof value === 'object') {
+      const converted: Record<string, unknown> = {};
+      for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+        converted[key] = this.transliterateKaContent(child);
+      }
+      return converted;
+    }
+
+    return value;
+  }
+
+  private transliterateGeorgianToLatin(input: string): string {
+    const map: Record<string, string> = {
+      'ა': 'a',
+      'ბ': 'b',
+      'გ': 'g',
+      'დ': 'd',
+      'ე': 'e',
+      'ვ': 'v',
+      'ზ': 'z',
+      'თ': 'T',
+      'ი': 'i',
+      'კ': 'k',
+      'ლ': 'l',
+      'მ': 'm',
+      'ნ': 'n',
+      'ო': 'o',
+      'პ': 'p',
+      'ჟ': 'J',
+      'რ': 'r',
+      'ს': 's',
+      'ტ': 't',
+      'უ': 'u',
+      'ფ': 'f',
+      'ქ': 'q',
+      'ღ': 'R',
+      'ყ': 'y',
+      'შ': 'S',
+      'ჩ': 'C',
+      'ც': 'c',
+      'ძ': 'Z',
+      'წ': 'w',
+      'ჭ': 'W',
+      'ხ': 'x',
+      'ჯ': 'j',
+      'ჰ': 'h'
+    };
+
+    let output = '';
+    for (const char of input) {
+      output += map[char] ?? char;
+    }
+    return output;
   }
 
   private isEssentialItem(value: unknown): value is { label: string; value: string } {

@@ -576,7 +576,9 @@ async function deliverInquiry(payload) {
   const webhookUrl = process.env.INQUIRY_WEBHOOK_URL;
 
   if (resendApiKey) {
-    const from = process.env.INQUIRY_FROM_EMAIL || 'onboarding@resend.dev';
+    const configuredFrom = normalizeEmail(process.env.INQUIRY_FROM_EMAIL || 'noreply@elitewe.com.ge');
+    const fromDomain = configuredFrom.split('@')[1] || '';
+    const from = fromDomain === 'elitewe.com.ge' ? configuredFrom : 'noreply@elitewe.com.ge';
     const to = payload.targetEmail;
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',

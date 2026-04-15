@@ -460,7 +460,7 @@
             <h4>{{ section.title }}</h4>
             <ul>
               @for (point of section.points; track point) {
-                <li>{{ point }}</li>
+                <li [innerHTML]="withLogoFont(point)"></li>
               }
             </ul>
           </article>

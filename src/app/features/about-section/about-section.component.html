@@ -7,6 +7,7 @@
       (blur)="onInlineEdit($event, 'about.eyebrow')"
     >{{ about().eyebrow }}</p>
     <h2
+      lang="en"
       [class.inline-live-edit]="isInlineEditing()"
       [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
       (blur)="onInlineEdit($event, 'about.title')"
@@ -16,11 +17,15 @@
   <div class="about-grid">
     <div class="about-copy">
       @for (paragraph of about().paragraphs; track paragraph; let i = $index) {
-        <p
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'about.paragraphs.' + i)"
-        >{{ paragraph }}</p>
+        @if (isInlineEditing()) {
+          <p
+            class="inline-live-edit"
+            contenteditable="plaintext-only"
+            (blur)="onInlineEdit($event, 'about.paragraphs.' + i)"
+          >{{ paragraph }}</p>
+        } @else {
+          <p [innerHTML]="withLogoFont(paragraph)"></p>
+        }
       }
       <a class="button button-primary" [attr.href]="isInlineEditing() ? null : '#contact'" (click)="onAboutAction($event)">
         <span
