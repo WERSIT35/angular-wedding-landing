@@ -31,9 +31,9 @@ export const CONTENT: Record<Language, ContentSection> = {
       title: 'Elite Weddings & Events Co.',
       paragraphs: [
         'Elite Weddings & Events Co. is a premier wedding agency based in Tbilisi, specializing in luxury weddings, refined celebrations, and truly unforgettable events across Georgia.',
-        'We believe every love story deserves to be brought to life through a beautifully curated experience. Our team blends creativity, professionalism, and deep local expertise to design weddings that authentically reflect each coupleâ€™s style, personality, and cultural essence.',
-        'Georgia has emerged as one of the worldâ€™s most captivating wedding destinationsâ€”renowned for its breathtaking landscapes, historic venues, celebrated vineyards, and exceptional hospitality. Our mission is to transform these extraordinary settings into the perfect backdrop for your once-in-a-lifetime celebration.',
-        'From your first consultation to the final firework, we take care of every detailâ€”so you can be fully present and enjoy every moment.'
+        'We believe every love story deserves to be brought to life through a beautifully curated experience. Our team blends creativity, professionalism, and deep local expertise to design weddings that authentically reflect each couple’s style, personality, and cultural essence.',
+        'Georgia has emerged as one of the world’s most captivating wedding destinations—renowned for its breathtaking landscapes, historic venues, celebrated vineyards, and exceptional hospitality. Our mission is to transform these extraordinary settings into the perfect backdrop for your once-in-a-lifetime celebration.',
+        'From your first consultation to the final firework, we take care of every detail—so you can be fully present and enjoy every moment.'
       ],
       cta: 'RSVP now',
       cardTitle: 'Our Approach',
@@ -253,7 +253,7 @@ export const CONTENT: Record<Language, ContentSection> = {
       eyebrow: 'Frequently Asked Questions',
       title: 'Frequently Asked Questions',
       answer:
-        'Absolutely. Georgia is one of the most sought-after wedding destinations, offering a unique blend of stunning natural beautyâ€”from mountains to seasideâ€”historic cities, rich cultural traditions, and warm hospitality. Its world-renowned cuisine and wine elevate every celebration into an extraordinary and memorable experience.',
+        'Absolutely. Georgia is one of the most sought-after wedding destinations, offering a unique blend of stunning natural beauty—from mountains to seaside—historic cities, rich cultural traditions, and warm hospitality. Its world-renowned cuisine and wine elevate every celebration into an extraordinary and memorable experience.',
       items: [
         'Is Georgia a good destination for a wedding?',
         'How much does a wedding cost in Georgia?',
@@ -262,11 +262,11 @@ export const CONTENT: Record<Language, ContentSection> = {
         'Do you assist with documentation? What is included in your service?'
       ],
       answers: [
-        'Absolutely. Georgia is one of the most sought-after wedding destinations, offering a unique blend of stunning natural beautyâ€”from mountains to seasideâ€”historic cities, rich cultural traditions, and warm hospitality. Its world-renowned cuisine and wine elevate every celebration into an extraordinary and memorable experience.',
-        'Wedding costs in Georgia vary depending on your preferences and requirements. During our complimentary consultation, we carefully plan your wedding details and provide a tailored budgetâ€”whether based on our curated packages or a fully customized concept designed just for you.',
+        'Absolutely. Georgia is one of the most sought-after wedding destinations, offering a unique blend of stunning natural beauty—from mountains to seaside—historic cities, rich cultural traditions, and warm hospitality. Its world-renowned cuisine and wine elevate every celebration into an extraordinary and memorable experience.',
+        'Wedding costs in Georgia vary depending on your preferences and requirements. During our complimentary consultation, we carefully plan your wedding details and provide a tailored budget—whether based on our curated packages or a fully customized concept designed just for you.',
         'Yes, foreigners can legally marry in Georgia with ease. The process is efficient, straightforward, and widely recognized for its simplicity.',
-        'We recommend booking at least 3â€“6 months in advance, especially for peak seasons such as spring and summer. For larger or more elaborate weddings, planning 6â€“12 months ahead ensures every detail is executed flawlessly.',
-        'Yes, we provide comprehensive support throughout the entire process. Our services include complimentary consultation, assistance with all required documentation, professional translation services, organization of official marriage registration, venue sourcing and design planning, and coordination of dÃ©cor, photography, and additional services. Our goal is to make your experience effortless, enjoyable, and completely stress-free.'
+        'We recommend booking at least 3–6 months in advance, especially for peak seasons such as spring and summer. For larger or more elaborate weddings, planning 6–12 months ahead ensures every detail is executed flawlessly.',
+        'Yes, we provide comprehensive support throughout the entire process. Our services include complimentary consultation, assistance with all required documentation, professional translation services, organization of official marriage registration, venue sourcing and design planning, and coordination of décor, photography, and additional services. Our goal is to make your experience effortless, enjoyable, and completely stress-free.'
       ]
     },
     extras: {
