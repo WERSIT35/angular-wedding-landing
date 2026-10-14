@@ -116,9 +116,15 @@ body.lang-ka .page-shell *::after {
   font-family: var(--font-georgian-body) !important;
 }
 
-// Georgian headings use the display face (Barata), body copy stays in Sanet.
-body.lang-ka .page-shell :is(h1, h2, h3, summary, .essential-card p, .timeline-time, .hero-stats strong) {
+// Georgian: the calligraphic Barata only for the big section titles; everything that has to
+// be read quickly (questions, facts, labels) stays in Sanet.
+body.lang-ka .page-shell :is(.section-heading h2, .site-footer h2, .hero-copy h2) {
   font-family: var(--font-georgian-display) !important;
+}
+
+// English names set as headings (the brand) keep the display serif in both languages.
+body.lang-ka .page-shell :is(h1, h2, h3)[lang='en']:not(.brand-name):not(.inline-logo-font) {
+  font-family: var(--font-display) !important;
 }
 
 body.lang-ka .page-shell .brand-name,
@@ -138,6 +144,12 @@ body.lang-ka .page-shell .inline-logo-font[lang='en'] {
 
 body.lang-ka .page-shell .language-toggle button {
   font-family: var(--font-body) !important;
+}
+
+// The Georgian fonts are keyboard fonts: case changes the letter (t = ტ, T = თ), so
+// Georgian text must never be upper-cased by CSS. Latin bits marked lang="en" keep it.
+body.lang-ka .page-shell *:not([lang='en']) {
+  text-transform: none !important;
 }
 
 body.lang-ka .page-shell .brand-kicker,
