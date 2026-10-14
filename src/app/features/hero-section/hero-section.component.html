@@ -2,16 +2,18 @@
   <div class="hero-backdrop">
     <img
       class="hero-image"
-      [src]="heroImageSrc()"
+      [src]="photoSrc(heroImageSrc())"
+      [attr.srcset]="photoSrcset(heroImageSrc())"
+      sizes="100vw"
       width="1440"
       height="900"
       [alt]="heroImageAlt()"
       fetchpriority="high"
-      decoding="async"
     />
   </div>
 
   <div class="hero-copy">
+    <div class="hero-intro">
     <p
       class="eyebrow"
       [class.inline-live-edit]="isInlineEditing()"
@@ -55,6 +57,8 @@
           (blur)="onInlineEdit($event, 'landing.viewDetailsLabel')"
         >{{ viewDetailsLabel() }}</span>
       </a>
+    </div>
+
     </div>
 
     <div class="hero-stats">

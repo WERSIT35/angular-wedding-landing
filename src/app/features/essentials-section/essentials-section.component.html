@@ -37,15 +37,25 @@
 
   <div class="timeline-card">
     <h3>{{ eventTimelineTitle() }}</h3>
-    <ul>
+    <ol class="timeline">
       @for (slot of eventTimeline(); track slot; let i = $index) {
-        <li
-          [class.inline-live-edit]="isInlineEditing()"
-          [attr.contenteditable]="isInlineEditing() ? 'plaintext-only' : null"
-          (blur)="onInlineEdit($event, 'landing.eventTimeline.' + i)"
-        >{{ slot }}</li>
+        @if (isInlineEditing()) {
+          <li
+            class="inline-live-edit"
+            contenteditable="plaintext-only"
+            (blur)="onInlineEdit($event, 'landing.eventTimeline.' + i)"
+          >{{ slot }}</li>
+        } @else {
+          @let part = splitSlot(slot);
+          <li>
+            @if (part.time) {
+              <span class="timeline-time">{{ part.time }}</span>
+            }
+            <span class="timeline-moment">{{ part.moment }}</span>
+          </li>
+        }
       }
-    </ul>
+    </ol>
     <button class="button button-secondary" type="button" (click)="onOpenMapClick()">
       <span
         [class.inline-live-edit]="isInlineEditing()"

@@ -25,6 +25,12 @@ export class EssentialsSectionComponent {
     this.openMapClick.emit();
   }
 
+  /** "5:00 PM - Guest arrival" → time + moment, so the time can be set large. */
+  protected splitSlot(slot: string): { time: string; moment: string } {
+    const at = slot.indexOf(' - ');
+    return at === -1 ? { time: '', moment: slot } : { time: slot.slice(0, at), moment: slot.slice(at + 3) };
+  }
+
   protected onInlineEdit(event: Event, path: string): void {
     const value = (event.target as HTMLElement | null)?.innerText ?? '';
     this.inlineEdit.emit({ path, value: value.trim() });

@@ -105,9 +105,7 @@ body {
 
 body {
   font-family: var(--font-body);
-  background:
-    radial-gradient(circle at top, rgba(232, 207, 174, 0.4), transparent 30%),
-    linear-gradient(180deg, #fbf7f2, #f5ede5 45%, #f8f3ee);
+  background: #faf6f0;
   color: var(--ink-strong);
 }
 
@@ -116,6 +114,11 @@ body.lang-ka .page-shell *,
 body.lang-ka .page-shell *::before,
 body.lang-ka .page-shell *::after {
   font-family: var(--font-georgian-body) !important;
+}
+
+// Georgian headings use the display face (Barata), body copy stays in Sanet.
+body.lang-ka .page-shell :is(h1, h2, h3, summary, .essential-card p, .timeline-time, .hero-stats strong) {
+  font-family: var(--font-georgian-display) !important;
 }
 
 body.lang-ka .page-shell .brand-name,
