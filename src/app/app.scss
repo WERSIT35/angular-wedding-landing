@@ -15,7 +15,7 @@ html {
   --paper-deep: #f3ebe0;
   --ink: #1d1815;
   --ink-soft: #5f5147;
-  --gold-text: #8a6537; // gold that still reads as text (5.4:1 on paper)
+  --gold-text: #7c5a2f; // gold that still reads as text (≥ 5:1 on both paper tones)
   --gold-line: #b48b5a; // decorative gold: hairlines, numerals
   --champagne: #e3c79f;
   --champagne-hover: #d8b88b;
@@ -523,7 +523,7 @@ a:focus-visible {
 }
 
 .hero-copy .eyebrow {
-  color: var(--champagne);
+  color: #fffaf3;
 }
 
 .hero-copy h1 {
