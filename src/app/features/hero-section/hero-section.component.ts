@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { ContentSection } from '../../models/site-content.model';
+import { photoSrc, photoSrcset } from '../../utils/photo';
 
 @Component({
   selector: 'app-hero-section',
@@ -14,6 +15,9 @@ export class HeroSectionComponent {
   public readonly rsvpNowLabel = input.required<string>();
   public readonly viewDetailsLabel = input.required<string>();
   public readonly isInlineEditing = input<boolean>(false);
+
+  protected readonly photoSrc = photoSrc;
+  protected readonly photoSrcset = photoSrcset;
 
   public readonly ctaClick = output<string>();
   public readonly inlineEdit = output<{ path: string; value: string }>();

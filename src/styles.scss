@@ -1,6 +1,8 @@
+// Self-hosted (woff2): no render-blocking font CSS from a third party.
+// Barata and Sanet are the Georgian faces (they map Latin keys to Georgian letters).
 @font-face {
   font-family: 'Barata';
-  src: url('/fonts/barata.ttf') format('truetype');
+  src: url('/fonts/barata.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -8,13 +10,67 @@
 
 @font-face {
   font-family: 'Sanet';
-  src: url('/fonts/sanet.ttf') format('truetype');
+  src: url('/fonts/sanet.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Dancing+Script:wght@400..700&family=Montserrat:wght@400;500;600;700&family=Noto+Sans+Georgian:wght@400;500;600;700&family=Noto+Serif+Georgian:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800&display=swap');
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('/fonts/cormorant-garamond-latin-500-normal.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('/fonts/cormorant-garamond-latin-500-italic.woff2') format('woff2');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat-latin-500-normal.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat-latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Dancing Script';
+  src: url('/fonts/dancing-script-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --ivory: #f9f4ee;
@@ -25,13 +81,12 @@
   --blush: #ead7d6;
   --ink-strong: #1d1815;
   --ink-muted: #5f5147;
-  --font-georgian-body: 'Sanet', var(--font-body), 'Noto Sans Georgian', sans-serif;
-  --font-georgian-display:
-    'Barata', var(--font-display-alt), 'Noto Serif Georgian', 'Noto Sans Georgian', serif;
+  --font-georgian-body: 'Sanet', var(--font-body), sans-serif;
+  --font-georgian-display: 'Barata', var(--font-display-alt), serif;
   --font-logo-script: 'Dancing Script', cursive;
-  --font-display: 'Playfair Display', serif;
+  --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
   --font-display-alt: 'Cormorant Garamond', serif;
-  --font-body: 'Montserrat', sans-serif;
+  --font-body: 'Montserrat', 'Helvetica Neue', sans-serif;
   color-scheme: light;
   scroll-behavior: smooth;
 }
@@ -50,9 +105,7 @@ body {
 
 body {
   font-family: var(--font-body);
-  background:
-    radial-gradient(circle at top, rgba(232, 207, 174, 0.4), transparent 30%),
-    linear-gradient(180deg, #fbf7f2, #f5ede5 45%, #f8f3ee);
+  background: #faf6f0;
   color: var(--ink-strong);
 }
 
@@ -61,6 +114,11 @@ body.lang-ka .page-shell *,
 body.lang-ka .page-shell *::before,
 body.lang-ka .page-shell *::after {
   font-family: var(--font-georgian-body) !important;
+}
+
+// Georgian headings use the display face (Barata), body copy stays in Sanet.
+body.lang-ka .page-shell :is(h1, h2, h3, summary, .essential-card p, .timeline-time, .hero-stats strong) {
+  font-family: var(--font-georgian-display) !important;
 }
 
 body.lang-ka .page-shell .brand-name,

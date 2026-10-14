@@ -13,24 +13,23 @@
     >{{ galleryTitle() }}</h2>
   </div>
 
-  <div class="gallery-slider splide" #gallerySlider>
-    <div class="splide__track">
-      <ul class="splide__list">
-        @for (photo of galleryPhotos(); track photo.src) {
-          <li class="splide__slide">
-            <figure class="gallery-card">
-              <img
-                [src]="photo.src"
-                [alt]="photo.alt"
-                loading="lazy"
-                decoding="async"
-                width="900"
-                height="600"
-              />
-            </figure>
-          </li>
-        }
-      </ul>
-    </div>
-  </div>
+  <!-- An editorial spread: every photo is on the page at once, no carousel to click through. -->
+  <ul class="gallery-mosaic" role="list">
+    @for (photo of galleryPhotos(); track photo.src) {
+      <li class="gallery-tile">
+        <figure class="gallery-card">
+          <img
+            [src]="photoSrc(photo.src)"
+            [attr.srcset]="photoSrcset(photo.src)"
+            sizes="(max-width: 760px) 100vw, 60vw"
+            [alt]="photo.alt"
+            loading="lazy"
+            decoding="async"
+            width="900"
+            height="1200"
+          />
+        </figure>
+      </li>
+    }
+  </ul>
 </section>
