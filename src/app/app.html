@@ -168,7 +168,7 @@
     <section class="legal-launch-block" aria-label="Legal information">
             <p class="legal-launch-copy">
         {{ currentLanguage() === 'ka'
-          ? 'saitis gamoyenebit etanxmebit chvens wesebs, konfidencialurobis da quki politikas.'
+          ? kaText('საიტის გამოყენებით ეთანხმებით ჩვენს წესებს, კონფიდენციალურობისა და ქუქი-პოლიტიკას.')
           : 'By using this website, you agree to our terms, privacy policy, and cookie policy.' }}
       </p>
       <div class="legal-actions">
@@ -469,7 +469,7 @@
 
       <div class="legal-footer-actions">
         <button type="button" class="button button-primary" (click)="closeLegalModal()">
-          {{ currentLanguage() === 'ka' ? 'daxurva' : 'Close' }}
+          {{ currentLanguage() === 'ka' ? kaText('დახურვა') : 'Close' }}
         </button>
       </div>
     </section>
@@ -478,17 +478,17 @@
   @if (cookieConsent() === 'unknown') {
     <section class="cookie-consent" role="dialog" aria-live="polite" aria-label="Cookie consent">
       <p>
-        {{ currentLanguage() === 'ka' ? 'es saiti iyenebs aucilebel qukebs funqcionalistvis da survilisamebr analitikur qukebs gamocdilebis gasaumjobeseblad.' : 'This site uses essential cookies for functionality and optional analytics cookies to improve your experience.' }}
+        {{ currentLanguage() === 'ka' ? kaText('ეს საიტი იყენებს აუცილებელ ქუქებს ფუნქციონირებისთვის და, სურვილისამებრ, ანალიტიკურ ქუქებს გამოცდილების გასაუმჯობესებლად.') : 'This site uses essential cookies for functionality and optional analytics cookies to improve your experience.' }}
       </p>
       <div class="cookie-consent-actions">
         <button type="button" class="button button-primary" (click)="acceptCookies()">
-          {{ currentLanguage() === 'ka' ? 'davetanxmebi' : 'Accept' }}
+          {{ currentLanguage() === 'ka' ? kaText('ვეთანხმები') : 'Accept' }}
         </button>
         <button type="button" class="button button-ghost" (click)="rejectCookies()">
-          {{ currentLanguage() === 'ka' ? 'uarvyof' : 'Reject' }}
+          {{ currentLanguage() === 'ka' ? kaText('უარი') : 'Reject' }}
         </button>
         <button type="button" class="button button-ghost" (click)="openLegalModal('cookies')">
-          {{ currentLanguage() === 'ka' ? 'quki politika' : 'Cookie Policy' }}
+          {{ currentLanguage() === 'ka' ? kaText('ქუქი-პოლიტიკა') : 'Cookie Policy' }}
         </button>
       </div>
     </section>

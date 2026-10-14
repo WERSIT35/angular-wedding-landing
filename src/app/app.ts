@@ -1,4 +1,5 @@
 ﻿import { DOCUMENT } from '@angular/common';
+import { toKaKeys } from './utils/ka-keys';
 import { Component, OnDestroy, ViewEncapsulation, computed, effect, inject, signal } from '@angular/core';
 import {
   EVENT_ESSENTIALS,
@@ -258,12 +259,25 @@ export class App implements OnDestroy {
   protected legalLabel(tab: LegalTab): string {
     const ka = this.currentLanguage() === 'ka';
     if (tab === 'terms') {
-      return ka ? 'wesebi da pirobebi' : 'Terms & Conditions';
+      return ka ? toKaKeys('წესები და პირობები') : 'Terms & Conditions';
     }
     if (tab === 'privacy') {
-      return ka ? 'konfidentsialurobis politika' : 'Privacy Policy';
+      return ka ? toKaKeys('კონფიდენციალურობის პოლიტიკა') : 'Privacy Policy';
     }
-    return ka ? 'quqi politika' : 'Cookie Policy';
+    return ka ? toKaKeys('ქუქი-პოლიტიკა') : 'Cookie Policy';
+  }
+
+  /** Legal copy is written in Georgian script; convert it to the font's keys for display. */
+  private kaSections(sections: Array<{ title: string; points: string[] }>): Array<{ title: string; points: string[] }> {
+    return sections.map((section) => ({
+      title: toKaKeys(section.title),
+      points: section.points.map(toKaKeys)
+    }));
+  }
+
+  /** For one-off Georgian strings in the template (cookie card, legal line). */
+  protected kaText(text: string): string {
+    return toKaKeys(text);
   }
 
   protected legalModalTitle(): string {
@@ -271,7 +285,7 @@ export class App implements OnDestroy {
   }
 
   protected legalUpdatedAt(): string {
-    return this.currentLanguage() === 'ka' ? 'ganaxlda: 2026-03-30' : 'Last updated: 2026-03-30';
+    return this.currentLanguage() === 'ka' ? toKaKeys('განახლდა: 2026-03-30') : 'Last updated: 2026-03-30';
   }
 
   protected legalSections(): Array<{ title: string; points: string[] }> {
@@ -280,50 +294,50 @@ export class App implements OnDestroy {
 
     if (tab === 'terms') {
       if (ka) {
-        return [
+        return this.kaSections([
           {
-            title: '1. momsaxurebis motsuloba',
+            title: '1. მომსახურების მოცულობა',
             points: [
-              'Elite Weddings & Events Co. gtavazobt qorwilis dagegmvas, koordinatsias da sakonsultatsio momsaxurebas.',
-              'saboloo momsaxurebis sia, vadebi da pasuxismgeblobebi ganisazghvreba xelshekrulebit an werilobiti shetavazebit.'
+              'Elite Weddings & Events Co. გთავაზობთ ქორწილის დაგეგმვას, კოორდინაციასა და საკონსულტაციო მომსახურებას.',
+              'მომსახურების საბოლოო ჩამონათვალი, ვადები და პასუხისმგებლობები განისაზღვრება ხელშეკრულებით ან წერილობითი შეთავაზებით.'
             ]
           },
           {
-            title: '2. dajavshna da gadaxdebi',
+            title: '2. დაჯავშნა და გადახდები',
             points: [
-              'dajavshna dzalashi shedis mxolod xelshekrulebis/dadasturebis da winaswari gadaxdis shemdeg.',
-              'dagvianebulma gadaxdam sheidzleba gamoiwvios servisis shechereba an dajavshnili tarighis dakargva.'
+              'დაჯავშნა ძალაში შედის მხოლოდ ხელშეკრულების/დადასტურებისა და წინასწარი გადახდის შემდეგ.',
+              'დაგვიანებულმა გადახდამ შეიძლება გამოიწვიოს სერვისის შეჩერება ან დაჯავშნილი თარიღის დაკარგვა.'
             ]
           },
           {
-            title: '3. gauqmeba, gadatana da dabruneba',
+            title: '3. გაუქმება, გადატანა და დაბრუნება',
             points: [
-              'gauqmebis da tanxis dabrunebis pirobebi ganisazghvreba individualuri xelshekrulebis mixedvit.',
-              'tarighis tsvlileba damokidebulia vendorebisa da lokatsiis xelmisawvdomobaze da sheidzleba moitsavdes damatebit xarjebs.'
+              'გაუქმებისა და თანხის დაბრუნების პირობები განისაზღვრება ინდივიდუალური ხელშეკრულების მიხედვით.',
+              'თარიღის ცვლილება დამოკიდებულია ვენდორებისა და ლოკაციის ხელმისაწვდომობაზე და შეიძლება მოითხოვდეს დამატებით ხარჯებს.'
             ]
           },
           {
-            title: '4. mesame mxaris vendorebi',
+            title: '4. მესამე მხარის ვენდორები',
             points: [
-              'fotografi, videografi, qeiteringi, transporti, musika da sxva momwodeblebi sheidzleba iyvnen damoukidebeli kontraqtorebi.',
-              'kompania pasuxismgebelia koordinatsiaze, magram ara mesame mxaris damoukidebel darghvevebze.'
+              'ფოტოგრაფი, ვიდეოგრაფი, კეიტერინგი, ტრანსპორტი, მუსიკა და სხვა მომწოდებლები შეიძლება იყვნენ დამოუკიდებელი კონტრაქტორები.',
+              'კომპანია პასუხისმგებელია კოორდინაციაზე, მაგრამ არა მესამე მხარის დამოუკიდებელ დარღვევებზე.'
             ]
           },
           {
-            title: '5. pasuxismgeblobis shezghudva',
+            title: '5. პასუხისმგებლობის შეზღუდვა',
             points: [
-              'fors-mazhoris shemtxvevebshi (amindi, stiqia, saxelmwifo shezghudvebi da sxva) valdebulebebi sruldeba shesabamisi kanonisa da xelshekrulebis mixedvit.',
-              'pasuxismgeblobis limiti, tu sxva ram ar aris motxovnili kanonit, shemoifargleba realurad gadaxdili momsaxurebis tanxit.'
+              'ფორს-მაჟორის შემთხვევებში (ამინდი, სტიქია, სახელმწიფო შეზღუდვები და სხვა) ვალდებულებები სრულდება შესაბამისი კანონისა და ხელშეკრულების მიხედვით.',
+              'პასუხისმგებლობის ლიმიტი, თუ სხვა რამ არ არის მოთხოვნილი კანონით, შემოიფარგლება რეალურად გადახდილი მომსახურების თანხით.'
             ]
           },
           {
-            title: '6. inteleqtualuri sakutreba da samartali',
+            title: '6. ინტელექტუალური საკუთრება და სამართალი',
             points: [
-              'saitis teqstebi, fotoebi da brenduli elementebi datsulia da mati unebartvo gamoyeneba akrdzalulia.',
-              'davebis shemtxvevashi, tu xelshekrulebit sxva ram ar aris gatvaliswinebuli, gamoiyeneba saqartvelos kanonmdebloba.'
+              'საიტის ტექსტები, ფოტოები და ბრენდული ელემენტები დაცულია და მათი უნებართვო გამოყენება აკრძალულია.',
+              'დავების შემთხვევაში, თუ ხელშეკრულებით სხვა რამ არ არის გათვალისწინებული, გამოიყენება საქართველოს კანონმდებლობა.'
             ]
           }
-        ];
+        ]);
       }
 
       return [
@@ -374,50 +388,49 @@ export class App implements OnDestroy {
 
     if (tab === 'privacy') {
       if (ka) {
-        return [
+        return this.kaSections([
           {
-            title: '1. ra monatsemebs vagrovebt',
+            title: '1. რა მონაცემებს ვაგროვებთ',
             points: [
-              'sakontaqto formis monatsemebi: saxeli, elfosta, telefoni, ghonisdziebis detalebi.',
-              'teqnikuri/usafrtxoebis monatsemebi: IP misamarti, anti-spamis signalebi, motxovnis logebi.'
+              'საკონტაქტო ფორმის მონაცემები: სახელი, ელფოსტა, ტელეფონი, ღონისძიების დეტალები.',
+              'ტექნიკური/უსაფრთხოების მონაცემები: აიპი მისამართი, ანტისპამის სიგნალები, მოთხოვნის ლოგები.'
             ]
           },
           {
-            title: '2. damushavebis mizani',
+            title: '2. დამუშავების მიზანი',
             points: [
-              'tqvens motxovnaze pasuxistvis, shetavazebis mosamzadeblad da momsaxurebis gasawevad.',
-              'personaluri monatsemebi ar iyideba da ar qiravdeba mesame pirebze.'
+              'თქვენს მოთხოვნაზე პასუხისთვის, შეთავაზების მოსამზადებლად და მომსახურების გასაწევად.',
+              'პერსონალური მონაცემები არ იყიდება და არ ქირავდება მესამე პირებზე.'
             ]
           },
           {
-            title: '3. mesame pirebtan gaziareba',
+            title: '3. მესამე პირებთან გაზიარება',
             points: [
-              'monatsemebi sheidzleba gaziardes mxolod sachiro teqnikur servis-provaiderebtan (mag.: hostingi, elfostis miwodeba).',
-              'am partniorebs evalebat konfidentsialurobisa da usafrtxoebis datsva.'
+              'მონაცემები შეიძლება გაზიარდეს მხოლოდ საჭირო ტექნიკურ სერვის-პროვაიდერებთან (მაგ.: ჰოსტინგი, ელფოსტის მიწოდება).',
+              'ამ პარტნიორებს ევალებათ კონფიდენციალურობისა და უსაფრთხოების დაცვა.'
             ]
           },
           {
-            title: '4. shenaxvis vadebi da usafrtxoeba',
+            title: '4. შენახვის ვადები და უსაფრთხოება',
             points: [
-              'monatsemebi inaxeba imden xans, ramdenits sachiroa momsaxurebistvis da samartlebrivi valdebulebebis shesasruleblad.',
-              'viyenebt gonivrul teqnikur da organizatsiul zomebs monatsemta dasatsavad.'
+              'მონაცემები ინახება იმდენ ხანს, რამდენიც საჭიროა მომსახურებისთვის და სამართლებრივი ვალდებულებების შესასრულებლად.',
+              'ვიყენებთ გონივრულ ტექნიკურ და ორგანიზაციულ ზომებს მონაცემთა დასაცავად.'
             ]
           },
           {
-            title: '5. tqveni uflebebi',
+            title: '5. თქვენი უფლებები',
             points: [
-              'kanonis farglebshi shegidzliat moitxovot monatsemebze wvdoma, shesworeba, washla an shezghudva.',
-              `mimartet: ${this.contactEmail()}.`
+              'კანონის ფარგლებში შეგიძლიათ მოითხოვოთ მონაცემებზე წვდომა, შესწორება, წაშლა ან შეზღუდვა.'
             ]
           },
           {
-            title: '6. saertashoriso gadatsema da arasrulwlovnebi',
+            title: '6. საერთაშორისო გადაცემა და არასრულწლოვნები',
             points: [
-              'tu monatsemebi mushavdeba utsxo qveyanashi myofi provaideris mier, gamoiyeneba shesabamisi datsvis zomebi.',
-              'servisi ar aris gankutvnili arasrulwlovnebis mier damoukidebeli xelshekrulebistvis.'
+              'თუ მონაცემები მუშავდება უცხო ქვეყანაში მყოფი პროვაიდერის მიერ, გამოიყენება შესაბამისი დაცვის ზომები.',
+              'სერვისი არ არის განკუთვნილი არასრულწლოვნების მიერ დამოუკიდებელი ხელშეკრულების დასადებად.'
             ]
           }
-        ];
+        ]);
       }
 
       return [
@@ -467,36 +480,36 @@ export class App implements OnDestroy {
     }
 
     if (ka) {
-      return [
+      return this.kaSections([
         {
-          title: '1. ra aris quqi',
+          title: '1. რა არის ქუქი',
           points: [
-            'quqi aris mtsire faili, romelits inaxeba tqvens brauzershi da exmareba saitis mushaobas.',
-            'quqebi sheidzleba iyos autsilebeli funqtsionirebistvis an analitikistvis.'
+            'ქუქი არის მცირე ფაილი, რომელიც ინახება თქვენს ბრაუზერში და ეხმარება საიტის მუშაობას.',
+            'ქუქები შეიძლება იყოს აუცილებელი ფუნქციონირებისთვის ან ანალიტიკისთვის.'
           ]
         },
         {
-          title: '2. quqebis tipebi',
+          title: '2. ქუქების ტიპები',
           points: [
-            'autsilebeli quqebi: usafrtxoeba, sesia, formebis dziritadi funqtsionireba.',
-            'analitikuri quqebi: agregirebuli statistika (mxolod tanxmobis shemtxvevashi).'
+            'აუცილებელი ქუქები: უსაფრთხოება, სესია, ფორმების ძირითადი ფუნქციონირება.',
+            'ანალიტიკური ქუქები: აგრეგირებული სტატისტიკა (მხოლოდ თანხმობის შემთხვევაში).'
           ]
         },
         {
-          title: '3. tanxmoba da martva',
+          title: '3. თანხმობა და მართვა',
           points: [
-            'saitze pirvel vizitze shegidzliat daadasturot an uaryot arasavaldebulo quqebi.',
-            'quqebis kontroli/washla aseve shesadzlebelia brauzeris parametrebidan.'
+            'საიტზე პირველი ვიზიტისას შეგიძლიათ დაადასტუროთ ან უარყოთ არასავალდებულო ქუქები.',
+            'ქუქების კონტროლი/წაშლა ასევე შესაძლებელია ბრაუზერის პარამეტრებიდან.'
           ]
         },
         {
-          title: '4. vadebi',
+          title: '4. ვადები',
           points: [
-            'sesiuri quqebi ishleba brauzeris daxurvisas.',
-            'mudmivi quqebi inaxeba konkretuli vadit an xelit washlamde.'
+            'სესიური ქუქები იშლება ბრაუზერის დახურვისას.',
+            'მუდმივი ქუქები ინახება კონკრეტული ვადით ან ხელით წაშლამდე.'
           ]
         }
-      ];
+      ]);
     }
 
     return [
@@ -1043,7 +1056,7 @@ export class App implements OnDestroy {
   protected eventEssentialsTitle(): string {
     return this.resolveLandingText(
       this.content().landing?.eventEssentialsTitle,
-      'mtavari detalebi',
+      'მთავარი დეტალები',
       'Event essentials'
     );
   }
@@ -1051,7 +1064,7 @@ export class App implements OnDestroy {
   protected eventEssentialsDescription(): string {
     return this.resolveLandingText(
       this.content().landing?.eventEssentialsDescription,
-      'stumrebistvis sachiro yvelaferi ert ekranze: tarighi, dro, lokatsia, dres kodi da taimlaini.',
+      'სტუმრებისთვის საჭირო ყველაფერი ერთ ეკრანზე: თარიღი, დრო, ლოკაცია, დრესკოდი და დღის განრიგი.',
       'Everything guests need at a glance: date, time, location, dress code, and timeline.'
     );
   }
@@ -1072,11 +1085,11 @@ export class App implements OnDestroy {
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { label: 'tarighi', value: '12 seqtemberi, 2026' },
-        { label: 'dro', value: '17:00 tseremonia, 19:00 migheba' },
-        { label: 'lokatsia', value: 'Wedding Palace, tbilisi' },
-        { label: 'dres kodi', value: 'Formal / Black tie optional' }
-      ];
+        { label: 'თარიღი', value: '12 სექტემბერი, 2026' },
+        { label: 'დრო', value: '17:00 ცერემონია, 19:00 მიღება' },
+        { label: 'ლოკაცია', value: 'ქორწილის სასახლე, თბილისი' },
+        { label: 'დრესკოდი', value: 'ოფიციალური / შავი ჰალსტუხი სურვილისამებრ' }
+      ].map((item) => ({ label: toKaKeys(item.label), value: toKaKeys(item.value) }));
     }
 
     return EVENT_ESSENTIALS;
@@ -1085,7 +1098,7 @@ export class App implements OnDestroy {
   protected eventTimelineTitle(): string {
     return this.resolveLandingText(
       this.content().landing?.eventTimelineTitle,
-      'dghis taimlaini',
+      'დღის განრიგი',
       'Wedding day timeline'
     );
   }
@@ -1104,11 +1117,11 @@ export class App implements OnDestroy {
 
     if (this.currentLanguage() === 'ka') {
       return [
-        '17:00 - stumrebis migheba',
-        '17:30 - tseremonia',
-        '19:00 - vaxshami',
-        '21:00 - wveuleba'
-      ];
+        '17:00 - სტუმრების მიღება',
+        '17:30 - ცერემონია',
+        '19:00 - ვახშამი',
+        '21:00 - წვეულება'
+      ].map(toKaKeys);
     }
 
     return EVENT_TIMELINE;
@@ -1120,15 +1133,15 @@ export class App implements OnDestroy {
   }
 
   protected plusOneLabel(): string {
-    return this.resolveLandingText(this.content().landing?.plusOneLabel, 'plus erti', 'Plus one');
+    return this.resolveLandingText(this.content().landing?.plusOneLabel, 'პლუს ერთი', 'Plus one');
   }
 
   protected quickContactLabel(): string {
-    return this.resolveLandingText(this.content().landing?.quickContactLabel, 'swrafi kontaqti', 'Quick contact');
+    return this.resolveLandingText(this.content().landing?.quickContactLabel, 'სწრაფი კონტაქტი', 'Quick contact');
   }
 
   protected dietaryLabel(): string {
-    return this.resolveLandingText(this.content().landing?.dietaryLabel, 'kvebiti shezghudvebi', 'Dietary preferences');
+    return this.resolveLandingText(this.content().landing?.dietaryLabel, 'კვებითი შეზღუდვები', 'Dietary preferences');
   }
 
   protected plusOneOptions(): SelectOption[] {
@@ -1147,56 +1160,56 @@ export class App implements OnDestroy {
 
     if (this.currentLanguage() === 'ka') {
       return [
-        { value: '', label: 'airchiet' },
-        { value: 'Yes', label: 'ki' },
-        { value: 'No', label: 'ara' },
-        { value: 'Maybe', label: 'shesadzloa' }
-      ];
+        { value: '', label: 'აირჩიეთ' },
+        { value: 'Yes', label: 'კი' },
+        { value: 'No', label: 'არა' },
+        { value: 'Maybe', label: 'შესაძლოა' }
+      ].map((option) => ({ ...option, label: toKaKeys(option.label) }));
     }
 
     return PLUS_ONE_OPTIONS;
   }
 
   protected rsvpNowLabel(): string {
-    return this.resolveLandingText(this.content().landing?.rsvpNowLabel, 'RSVP axlave', 'RSVP now');
+    return this.resolveLandingText(this.content().landing?.rsvpNowLabel, 'დაჯავშნეთ ახლავე', 'RSVP now');
   }
 
   protected viewDetailsLabel(): string {
-    return this.resolveLandingText(this.content().landing?.viewDetailsLabel, 'detalebis naxva', 'View details');
+    return this.resolveLandingText(this.content().landing?.viewDetailsLabel, 'დეტალების ნახვა', 'View details');
   }
 
   protected eventInfoEyebrow(): string {
-    return this.resolveLandingText(this.content().landing?.eventInfoEyebrow, 'ghonisdziebis informatsia', 'Event info');
+    return this.resolveLandingText(this.content().landing?.eventInfoEyebrow, 'ღონისძიების ინფორმაცია', 'Event info');
   }
 
   protected openMapLabel(): string {
-    return this.resolveLandingText(this.content().landing?.openMapLabel, 'lokatsiis rukis gaxsna', 'Open venue map');
+    return this.resolveLandingText(this.content().landing?.openMapLabel, 'ლოკაციის რუკის გახსნა', 'Open venue map');
   }
 
   protected galleryEyebrow(): string {
-    return this.resolveLandingText(this.content().landing?.galleryEyebrow, 'galerea', 'Gallery');
+    return this.resolveLandingText(this.content().landing?.galleryEyebrow, 'გალერეა', 'Gallery');
   }
 
   protected galleryTitle(): string {
     return this.resolveLandingText(
       this.content().landing?.galleryTitle,
-      'momentebi realuri ghonisdziebebidan',
+      'მომენტები რეალური ღონისძიებებიდან',
       'Moments from real celebrations'
     );
   }
 
   protected contactEyebrow(): string {
-    return this.resolveLandingText(this.content().landing?.contactEyebrow, 'kontaqti da RSVP', 'Contact & RSVP');
+    return this.resolveLandingText(this.content().landing?.contactEyebrow, 'კონტაქტი და დაჯავშნა', 'Contact & RSVP');
   }
 
   protected contactTitle(): string {
-    return this.resolveLandingText(this.content().landing?.contactTitle, 'RSVP 30 wamshi', 'RSVP in 30 seconds');
+    return this.resolveLandingText(this.content().landing?.contactTitle, 'მოთხოვნა 30 წამში', 'RSVP in 30 seconds');
   }
 
   protected contactDescription(): string {
     return this.resolveLandingText(
       this.content().landing?.contactDescription,
-      'mokle forma, myisieri gagzavna elfostit an WhatsApp-it.',
+      'მოკლე ფორმა, მყისიერი გაგზავნა ელფოსტით ან ვოთსაპით.',
       'Short form, instant send via email or WhatsApp.'
     );
   }
@@ -1204,7 +1217,7 @@ export class App implements OnDestroy {
   protected sendByEmailLabel(): string {
     return this.resolveLandingText(
       this.content().landing?.sendByEmailLabel,
-      'RSVP gagzavna elfostaze',
+      'გაგზავნა ელფოსტით',
       'Send RSVP by email'
     );
   }
@@ -1212,7 +1225,7 @@ export class App implements OnDestroy {
   protected sendByWhatsappLabel(): string {
     return this.resolveLandingText(
       this.content().landing?.sendByWhatsappLabel,
-      'RSVP gagzavna WhatsApp-ze',
+      'გაგზავნა ვოთსაპით',
       'Send RSVP by WhatsApp'
     );
   }
@@ -1220,19 +1233,19 @@ export class App implements OnDestroy {
   protected responseTimeLabel(): string {
     return this.resolveLandingText(
       this.content().landing?.responseTimeLabel,
-      'pasuxis dro: 24 saatshi',
+      'პასუხის დრო: 24 საათში',
       'Response time: within 24 hours'
     );
   }
 
   protected openWhatsappLabel(): string {
-    return this.resolveLandingText(this.content().landing?.openWhatsappLabel, 'WhatsApp gaxsna', 'Open WhatsApp');
+    return this.resolveLandingText(this.content().landing?.openWhatsappLabel, 'ვოთსაპის გახსნა', 'Open WhatsApp');
   }
 
   protected footerTitle(): string {
     return this.resolveLandingText(
       this.content().landing?.footerTitle,
-      'mzad xart aghsanishnavad chventan ertad?',
+      'მზად ხართ, ჩვენთან ერთად იზეიმოთ?',
       'Ready to celebrate with us?'
     );
   }
@@ -1638,48 +1651,9 @@ export class App implements OnDestroy {
   }
 
   private transliterateGeorgianToLatin(input: string): string {
-    const map: Record<string, string> = {
-      'ა': 'a',
-      'ბ': 'b',
-      'გ': 'g',
-      'დ': 'd',
-      'ე': 'e',
-      'ვ': 'v',
-      'ზ': 'z',
-      'თ': 'T',
-      'ი': 'i',
-      'კ': 'k',
-      'ლ': 'l',
-      'მ': 'm',
-      'ნ': 'n',
-      'ო': 'o',
-      'პ': 'p',
-      'ჟ': 'J',
-      'რ': 'r',
-      'ს': 's',
-      'ტ': 't',
-      'უ': 'u',
-      'ფ': 'f',
-      'ქ': 'q',
-      'ღ': 'R',
-      'ყ': 'y',
-      'შ': 'S',
-      'ჩ': 'C',
-      'ც': 'c',
-      'ძ': 'Z',
-      'წ': 'w',
-      'ჭ': 'W',
-      'ხ': 'x',
-      'ჯ': 'j',
-      'ჰ': 'h'
-    };
-
-    let output = '';
-    for (const char of input) {
-      output += map[char] ?? char;
-    }
-    return output;
+    return toKaKeys(input);
   }
+
 
   private isEssentialItem(value: unknown): value is { label: string; value: string } {
     return Boolean(
@@ -1711,7 +1685,7 @@ export class App implements OnDestroy {
     if (typeof value === 'string' && value.trim() && !this.isMojibakeString(value)) {
       return value;
     }
-    return this.currentLanguage() === 'ka' ? kaFallback : enFallback;
+    return this.currentLanguage() === 'ka' ? toKaKeys(kaFallback) : enFallback;
   }
 
   private trackEvent(

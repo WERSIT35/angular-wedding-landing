@@ -319,321 +319,323 @@ export const CONTENT: Record<Language, ContentSection> = {
       ]
     }
   },
+  // Written in Georgian script. resolvedContent() converts it to the Barata/Sanet keyboard
+  // keys at runtime (ქართველი → qarTveli), so nobody has to hand-type the key form.
   ka: {
-    siteTagline: 'luqs qorwilebi',
+    siteTagline: 'ლუქს ქორწილები',
     brandName: 'Elite Weddings & Events Co.',
     navItems: [],
-    headerCta: 'konsultaciis dajavSna',
+    headerCta: 'კონსულტაციის დაჯავშნა',
     hero: {
-      eyebrow: 'destinaciuri qorwilebi saqartveloSi',
+      eyebrow: 'დესტინაციური ქორწილები საქართველოში',
       title: 'Elite Weddings & Events Co.',
-      subtitle: 'luqs qorwilis dagegmva da destinaciuri qorwilebi saqartveloSi',
+      subtitle: 'ლუქს ქორწილის დაგეგმვა და დესტინაციური ქორწილები საქართველოში',
       description:
-        'kaxeTis romantikuli venaxebidan tbilisis elegantur dResaswaulebamde da yazbegis StambeWdav mtis ceremoniebamde, Elite Weddings & Events Co. qmnis dauviwyar saqorwilo gamocdilebas, romelic zustad tqvens siyvarulis istorias ergeba.',
-      primaryCta: 'daiwyet tqveni saocnebo qorwilis dagegmva',
-      secondaryCta: 'dajavSnet ufaso konsultacia',
-      tertiaryCta: 'ixilet Cveni saqorwilo paketebi',
+        'კახეთის რომანტიკული ვენახებიდან თბილისის ელეგანტურ დღესასწაულებამდე და ყაზბეგის შთამბეჭდავ მთის ცერემონიებამდე, Elite Weddings & Events Co. ქმნის დაუვიწყარ საქორწილო გამოცდილებას, რომელიც ზუსტად თქვენს სიყვარულის ისტორიას ერგება.',
+      primaryCta: 'დაიწყეთ თქვენი საოცნებო ქორწილის დაგეგმვა',
+      secondaryCta: 'დაჯავშნეთ უფასო კონსულტაცია',
+      tertiaryCta: 'იხილეთ ჩვენი საქორწილო პაკეტები',
       stats: [
-        { value: '20+', label: 'eqskluziuri lokacia saqartveloSi' },
-        { value: '4', label: 'gamorCeuli regioni qorwilistvis' },
-        { value: '24st', label: 'motxovnaze pasuxis dro' }
+        { value: '20+', label: 'ექსკლუზიური ლოკაცია საქართველოში' },
+        { value: '4', label: 'გამორჩეული რეგიონი ქორწილისთვის' },
+        { value: '24სთ', label: 'მოთხოვნაზე პასუხის დრო' }
       ]
     },
     flow: {
-      eyebrow: 'mtavari gverdis struqtura',
-      title: 'hirodan motxovnamde, premium wyvilebze morgebuli gzit.',
-      steps: ['hiro', 'paketebi', 'portfolio', 'Sefasebebi', 'kontaqti']
+      eyebrow: 'მთავარი გვერდის სტრუქტურა',
+      title: 'ჰიროდან მოთხოვნამდე, პრემიუმ წყვილებზე მორგებული გზით.',
+      steps: ['ჰირო', 'პაკეტები', 'პორტფოლიო', 'შეფასებები', 'კონტაქტი']
     },
     about: {
-      eyebrow: 'Cven Sesaxeb',
+      eyebrow: 'ჩვენ შესახებ',
       title: 'Elite Weddings & Events Co.',
       paragraphs: [
-        'Elite Weddings & Events Co. aris adgilobrivi saqorwilo saagento tbilisSi, romelic specializebda luqs qorwilebSi, elegantur dResaswaulsa da dauviwyar RonisziebebSi, mteli saqartvelos maStabit.',
-        'Cven gvjera, rom yvela siyvarulis istoria imsaxurebs lamazad organizebul dRes. Cveni gundi aertianebs kreativobas, profesionalizmsa da adgilobriv gamocdilebas, rata Sevqmnat qorwili, romelic wyvilis stils, xasiatsa da kulturas sauketesod asaxavs.',
-        'saqartvelo ert-ert yvelaze sasurvel saqorwilo mimartulebad iqca tavisi StambeWdavi peizajebit, istoriuli sivrceebit, cnobili venaxebita da tbili maspinZlobiT. Cveni misiaa es lokaciebi tqveni gansakutrebuli dRis idealur scenad vaqciot.',
-        'pirveli konsultaciidan bolo feierverkamde, Cven uzrunvelvyoft yvela detals, rata tqven mxolod isiamovnot am dRit.',
-        'mzad xart tqveni ocnebis qorwili Cventan ertad realobad aqciot?'
+        'Elite Weddings & Events Co. არის ადგილობრივი საქორწილო სააგენტო თბილისში, რომელიც სპეციალიზებულია ლუქს ქორწილებზე, ელეგანტურ დღესასწაულებსა და დაუვიწყარ ღონისძიებებზე მთელი საქართველოს მასშტაბით.',
+        'ჩვენ გვჯერა, რომ ყველა სიყვარულის ისტორია იმსახურებს ლამაზად ორგანიზებულ დღეს. ჩვენი გუნდი აერთიანებს კრეატიულობას, პროფესიონალიზმსა და ადგილობრივ გამოცდილებას, რათა შევქმნათ ქორწილი, რომელიც წყვილის სტილს, ხასიათსა და კულტურას საუკეთესოდ ასახავს.',
+        'საქართველო ერთ-ერთ ყველაზე სასურველ საქორწილო მიმართულებად იქცა თავისი შთამბეჭდავი პეიზაჟებით, ისტორიული სივრცეებით, ცნობილი ვენახებითა და თბილი მასპინძლობით. ჩვენი მისიაა, ეს ლოკაციები თქვენი განსაკუთრებული დღის იდეალურ სცენად ვაქციოთ.',
+        'პირველი კონსულტაციიდან ბოლო ფეიერვერკამდე ჩვენ ვუზრუნველყოფთ ყველა დეტალს, რათა თქვენ მხოლოდ ისიამოვნოთ ამ დღით.',
+        'მზად ხართ, თქვენი ოცნების ქორწილი ჩვენთან ერთად რეალობად აქციოთ?'
       ],
-      cta: 'RSVP axlave',
-      cardTitle: 'Cventan tanamSromlobis prioritetebi',
+      cta: 'დაჯავშნეთ ახლავე',
+      cardTitle: 'ჩვენთან თანამშრომლობის პრიორიტეტები',
       differentiators: [
-        'personalizebuli saqorwilo koncefciebi',
-        'pirveladi ufaso konsultacia',
-        '24/7 mxaredaWera javSnis Semdgom periodSi',
-        'eqskluziuri partnioroba lokaciebTan',
-        'qorwilis sruli dRis koordinacia',
-        'damatebiti servisebis SesaZlebloba'
+        'პერსონალიზებული საქორწილო კონცეფციები',
+        'პირველადი უფასო კონსულტაცია',
+        '24/7 მხარდაჭერა დაჯავშნის შემდგომ პერიოდში',
+        'ექსკლუზიური პარტნიორობა ლოკაციებთან',
+        'ქორწილის სრული დღის კოორდინაცია',
+        'დამატებითი სერვისების შესაძლებლობა'
       ]
     },
     services: {
-      eyebrow: 'servisebi',
-      title: 'dagegmvis servisebi, romelic tqveni dRis yvela etaps moergeba.',
+      eyebrow: 'სერვისები',
+      title: 'დაგეგმვის სერვისები, რომლებიც თქვენი დღის ყველა ეტაპს მოერგება.',
       items: [
         {
-          title: 'qorwilis sruli dagegmva',
-          description: 'Cveni sruli servisi faravs tqveni qorwilis mogzaurobis yvela detals.',
+          title: 'ქორწილის სრული დაგეგმვა',
+          description: 'ჩვენი სრული სერვისი მოიცავს თქვენი ქორწილის მოგზაურობის ყველა დეტალს.',
           items: [
-            'qorwilis koncefcia da dizaini',
-            'lokaciis moZieba da dajavSna',
-            'vendorebis SerCeva da martva',
-            'dekori da floristika',
-            'foto da video gadaReba',
-            'kateringi da menius dizaini',
-            'gartoba da musika',
-            'stumrebis martva da lojistika',
-            'qorwilis dRis koordinacia'
+            'ქორწილის კონცეფცია და დიზაინი',
+            'ლოკაციის მოძიება და დაჯავშნა',
+            'ვენდორების შერჩევა და მართვა',
+            'დეკორი და ფლორისტიკა',
+            'ფოტო და ვიდეო გადაღება',
+            'კეიტერინგი და მენიუს დიზაინი',
+            'გართობა და მუსიკა',
+            'სტუმრების მართვა და ლოჯისტიკა',
+            'ქორწილის დღის კოორდინაცია'
           ],
-          cta: 'moitxovet sruli dagegmvis servisi'
+          cta: 'მოითხოვეთ სრული დაგეგმვის სერვისი'
         },
         {
-          title: 'destinaciuri qorwilis dagegmva',
+          title: 'დესტინაციური ქორწილის დაგეგმვა',
           description:
-            'vxmarobt msoflios sxvadasxva qveynidan Camosul wyvilebs, rom saqartveloSi idealuri qorwili dagegmon.',
+            'ვეხმარებით მსოფლიოს სხვადასხვა ქვეყნიდან ჩამოსულ წყვილებს, რომ საქართველოში იდეალური ქორწილი დაგეგმონ.',
           items: [
-            'tbilisis luqs lokaciebi',
-            'kaxeTis venaxebSi qorwili',
-            'yazbegis mtis ceremonia',
-            'batumis sanapiro dResaswaulebi'
+            'თბილისის ლუქს ლოკაციები',
+            'ქორწილი კახეთის ვენახებში',
+            'ყაზბეგის მთის ცერემონია',
+            'ბათუმის სანაპირო დღესასწაულები'
           ],
-          cta: 'dagegmet destinaciuri qorwili'
+          cta: 'დაგეგმეთ დესტინაციური ქორწილი'
         },
         {
-          title: 'qorwilis dRis koordinacia',
+          title: 'ქორწილის დღის კოორდინაცია',
           description:
-            'tu qorwili ukve dagegmili gaqvt, Cveni gundi uzrunvelyofs, rom dRe Seuferxeblad Caiaros.',
+            'თუ ქორწილი უკვე დაგეგმილი გაქვთ, ჩვენი გუნდი უზრუნველყოფს, რომ დღემ შეუფერხებლად ჩაიაროს.',
           items: [
-            'vendorebis taimingis martva',
-            'stumrebis nakadis kontroli',
-            'ceremoniisa da miRebis koordinacia',
-            'adgilze problemebis swrafi gadawyveta'
+            'ვენდორების ტაიმინგის მართვა',
+            'სტუმრების ნაკადის კონტროლი',
+            'ცერემონიისა და მიღების კოორდინაცია',
+            'ადგილზე პრობლემების სწრაფი გადაწყვეტა'
           ],
-          cta: 'daiqiravet koordinatori'
+          cta: 'დაიქირავეთ კოორდინატორი'
         },
         {
-          title: 'iuridiuli daxmareba qorwilistvis',
+          title: 'იურიდიული დახმარება ქორწილისთვის',
           description:
-            'saqartveloSi ucxoelebistvis qorwinebis registracia swrafi da martivia, Cven ki yvela etapze dagexmarebit.',
+            'საქართველოში უცხოელებისთვის ქორწინების რეგისტრაცია სწრაფი და მარტივია, ჩვენ კი ყველა ეტაპზე დაგეხმარებით.',
           items: [
-            'dokumentebis momzadeba',
-            'pasportebis targmna',
-            'qorwinebis registraciis CaniSnva',
-            'mowmeebis uzrunvelyofa',
-            'apostili da legalizacia'
+            'დოკუმენტების მომზადება',
+            'პასპორტების თარგმნა',
+            'ქორწინების რეგისტრაციის ჩანიშვნა',
+            'მოწმეების უზრუნველყოფა',
+            'აპოსტილი და ლეგალიზაცია'
           ],
-          cta: 'miiRet iuridiuli mxardaWera'
+          cta: 'მიიღეთ იურიდიული მხარდაჭერა'
         }
       ]
     },
     packages: {
-      eyebrow: 'saqorwilo paketebi',
-      title: 'struqturirebuli paketebi intimuri ceremoniidan vip RonisZiebamde.',
+      eyebrow: 'საქორწილო პაკეტები',
+      title: 'სტრუქტურირებული პაკეტები ინტიმური ცერემონიიდან ვიპ ღონისძიებამდე.',
       items: [
         {
-          title: 'intimuri qorwilis paketi',
-          guests: 'idealuria 2-15 stumristvis',
-          price: 'fasi $1,200-dan',
-          description: 'SesaniSnavia elopmentistvis an patara qorwilistvis.',
+          title: 'ინტიმური ქორწილის პაკეტი',
+          guests: 'იდეალურია 2-15 სტუმრისთვის',
+          price: 'ფასი $1,200-დან',
+          description: 'შესანიშნავია ელოუპმენტისთვის ან პატარა ქორწილისთვის.',
           items: [
-            'sakonsultacio Sexvedra',
-            'ceremoniis lokacia tbilisSi',
-            'qorwilis koordinatori',
-            'saqorwilo taiguli da butonieri',
-            'profesionali fotografi (2 saati)',
-            'ceremoniis dekori',
-            'qorwinebis registraciis daxmareba'
+            'საკონსულტაციო შეხვედრა',
+            'ცერემონიის ლოკაცია თბილისში',
+            'ქორწილის კოორდინატორი',
+            'საქორწილო თაიგული და ბუტონიერი',
+            'პროფესიონალი ფოტოგრაფი (2 საათი)',
+            'ცერემონიის დეკორი',
+            'ქორწინების რეგისტრაციის დახმარება'
           ],
-          cta: 'dajavSnet intimuri qorwili'
+          cta: 'დაჯავშნეთ ინტიმური ქორწილი'
         },
         {
-          title: 'klasikuri qorwilis paketi',
-          guests: 'idealuria 20-50 stumristvis',
-          price: 'fasi $6,000-dan',
-          description: 'wyvilebistvis, visac surs lamazi qorwili zedmeti stresis gareSe.',
+          title: 'კლასიკური ქორწილის პაკეტი',
+          guests: 'იდეალურია 20-50 სტუმრისთვის',
+          price: 'ფასი $6,000-დან',
+          description: 'წყვილებისთვის, ვისაც სურს ლამაზი ქორწილი ზედმეტი სტრესის გარეშე.',
           items: [
-            'qorwilis sruli dagegmva',
-            'lokaciis SerCeva',
-            'floristika da dekori',
-            'fotografi (6 saati)',
-            'videografi',
-            'kateringi da saqorwilo vaxSami',
-            'dijei an cocxali musika',
-            'qorwilis dRis koordinacia'
+            'ქორწილის სრული დაგეგმვა',
+            'ლოკაციის შერჩევა',
+            'ფლორისტიკა და დეკორი',
+            'ფოტოგრაფი (6 საათი)',
+            'ვიდეოგრაფი',
+            'კეიტერინგი და საქორწილო ვახშამი',
+            'დიჯეი ან ცოცხალი მუსიკა',
+            'ქორწილის დღის კოორდინაცია'
           ],
-          cta: 'ixilet klasikuri paketis detalebi',
+          cta: 'იხილეთ კლასიკური პაკეტის დეტალები',
           featured: true
         },
         {
-          title: 'luqs destinaciuri qorwili',
-          guests: 'idealuria 50-150 stumristvis',
-          price: 'fasi $15,000-dan',
-          description: 'wyvilebistvis, visac namdvilad dauviwyari luqs gamocdileba surs.',
+          title: 'ლუქს დესტინაციური ქორწილი',
+          guests: 'იდეალურია 50-150 სტუმრისთვის',
+          price: 'ფასი $15,000-დან',
+          description: 'წყვილებისთვის, ვისაც ნამდვილად დაუვიწყარი ლუქს გამოცდილება სურს.',
           items: [
-            'qorwilis sruli servisi',
-            'eqskluziuri lokaciis dajavSna',
-            'luqs floristika da dekori',
-            'qorwilis dizaineri da stilisti',
-            'fotografia da kinematografiuli video',
-            'gartoba da cocxali bendi',
-            'premium kateringi',
-            'stumrebis transportireba',
-            'gantavsebis daxmareba',
-            'saqorwilo vebsaiti stumrebistvis'
+            'ქორწილის სრული სერვისი',
+            'ექსკლუზიური ლოკაციის დაჯავშნა',
+            'ლუქს ფლორისტიკა და დეკორი',
+            'ქორწილის დიზაინერი და სტილისტი',
+            'ფოტოგრაფია და კინემატოგრაფიული ვიდეო',
+            'გართობა და ცოცხალი ბენდი',
+            'პრემიუმ კეიტერინგი',
+            'სტუმრების ტრანსპორტირება',
+            'განთავსების დახმარება',
+            'საქორწილო ვებსაიტი სტუმრებისთვის'
           ],
-          cta: 'dagegmet luqs qorwili'
+          cta: 'დაგეგმეთ ლუქს ქორწილი'
         },
         {
-          title: 'vip xelweriti qorwili',
-          guests: 'Elite Weddings-is premium gamocdileba',
-          price: 'fasi $35,000-dan',
-          description: 'srulad individualuri, mravaldRiani RonisZieba gamorCeuli wyvilebistvis.',
+          title: 'ვიპ ხელწერითი ქორწილი',
+          guests: 'ელიტ ვედინგსის პრემიუმ გამოცდილება',
+          price: 'ფასი $35,000-დან',
+          description: 'სრულად ინდივიდუალური, მრავალდღიანი ღონისძიება გამორჩეული წყვილებისთვის.',
           items: [
-            'srulad morgebuli koncefcia',
-            'kerZo lokaciis sruli daqiraveba',
-            'saertaSoriso vendorebis gundi',
-            'mravaldRiani zeimi',
-            'luqs floraluri instalaciebi',
-            'umaRlesi donis gartoba',
-            'gamoyofili planing gundi'
+            'სრულად მორგებული კონცეფცია',
+            'კერძო ლოკაციის სრული დაქირავება',
+            'საერთაშორისო ვენდორების გუნდი',
+            'მრავალდღიანი ზეიმი',
+            'ლუქს ფლორალური ინსტალაციები',
+            'უმაღლესი დონის გართობა',
+            'გამოყოფილი დაგეგმვის გუნდი'
           ],
-          cta: 'moitxovet vip dagegmva'
+          cta: 'მოითხოვეთ ვიპ დაგეგმვა'
         }
       ]
     },
     destinations: {
-      eyebrow: 'lokaciebi / veniuebi saqartveloSi',
-      title: 'yvelaze lamazi saqorwilo lokaciebi saqartveloSi.',
-      description: 'saqartvelo gtavazobt StambeWdav adgilebs venaxebidan mtebamde.',
+      eyebrow: 'ლოკაციები / ვენიუები საქართველოში',
+      title: 'ყველაზე ლამაზი საქორწილო ლოკაციები საქართველოში.',
+      description: 'საქართველო გთავაზობთ შთამბეჭდავ ადგილებს ვენახებიდან მთებამდე.',
       items: [
         {
-          title: 'tbilisi',
-          description: 'qalaquri luqs qorwilebi istoriuli arqiteqturita da daxvewili atmosferoti.'
+          title: 'თბილისი',
+          description: 'ქალაქური ლუქს ქორწილები ისტორიული არქიტექტურითა და დახვეწილი ატმოსფეროთი.'
         },
         {
-          title: 'kaxeTi',
-          description: 'romantikuli qorwilebi venaxebSi, bunebita da Rvinis kulturit garSemortymuli.'
+          title: 'კახეთი',
+          description: 'რომანტიკული ქორწილები ვენახებში, ბუნებითა და ღვინის კულტურით გარშემორტყმული.'
         },
         {
-          title: 'yazbegi',
-          description: 'mtis ceremoniebi StambeWdavi xedebit da gamorCeuli emociebit.'
+          title: 'ყაზბეგი',
+          description: 'მთის ცერემონიები შთამბეჭდავი ხედებითა და გამორჩეული ემოციებით.'
         },
         {
-          title: 'batumi',
-          description: 'zRvispira qorwilebi tanamedrove rezortebita da sanapiro eleganturobit.'
+          title: 'ბათუმი',
+          description: 'ზღვისპირა ქორწილები თანამედროვე კურორტებითა და სანაპიროს ელეგანტურობით.'
         }
       ],
-      cta: 'ixilet saqorwilo lokaciebi'
+      cta: 'იხილეთ საქორწილო ლოკაციები'
     },
     portfolio: {
-      eyebrow: 'portfolio',
-      title: 'galereis struqtura, romelic istorias da luqs vizuals aertianebs.',
+      eyebrow: 'პორტფოლიო',
+      title: 'გალერეის სტრუქტურა, რომელიც ისტორიასა და ლუქს ვიზუალს აერთიანებს.',
       groups: [
-        'realuri qorwilebi',
-        'saqorwilo dekori',
-        'destinaciuri qorwilebi',
-        'luqs qorwilebi',
-        'niSnobis fotosesiebi'
+        'რეალური ქორწილები',
+        'საქორწილო დეკორი',
+        'დესტინაციური ქორწილები',
+        'ლუქს ქორწილები',
+        'ნიშნობის ფოტოსესიები'
       ],
-      cta: 'ixilet saqorwilo galerea'
+      cta: 'იხილეთ საქორწილო გალერეა'
     },
     testimonials: {
-      eyebrow: 'Sefasebebi',
-      title: 'wyvilebis sityvebi, romlebmac tavianti cxovrebis mniSvnelovani dRe Cven gvandes.',
+      eyebrow: 'შეფასებები',
+      title: 'წყვილების სიტყვები, რომლებმაც თავიანთი ცხოვრების მნიშვნელოვანი დღე ჩვენ გვანდეს.',
       items: [
         {
           quote:
-            'Elite Weddings & Events Co.-m Cveni saocnebo qorwili realobad aqcia. yvela detali idealuri iyo da procesi sruliad mSvidi.',
-          name: 'ema da danieli',
-          country: 'didi britaneti'
+            'Elite Weddings & Events Co.-მ ჩვენი საოცნებო ქორწილი რეალობად აქცია. ყველა დეტალი იდეალური იყო, პროცესი კი სრულიად მშვიდი.',
+          name: 'ემა და დანიელი',
+          country: 'დიდი ბრიტანეთი'
         },
         {
           quote:
-            'destinaciuri qorwilis dagegmva SeuZlebeli gvegona, sanam am saocar gunds ar Sevxvdit.',
-          name: 'sofia da marko',
-          country: 'italia'
+            'დესტინაციური ქორწილის დაგეგმვა შეუძლებელი გვეგონა, სანამ ამ საოცარ გუნდს არ შევხვდით.',
+          name: 'სოფია და მარკო',
+          country: 'იტალია'
         }
       ],
-      cta: 'ixilet meti Sefaseba'
+      cta: 'იხილეთ მეტი შეფასება'
     },
     blog: {
-      eyebrow: 'blogi / saqorwilo rCevebi',
-      title: 'saredaqcio temebi SEO-stvis da sasargeblo dagegmvis kontentistvis.',
-      badge: 'rCeuli statia',
+      eyebrow: 'ბლოგი / საქორწილო რჩევები',
+      title: 'სარედაქციო თემები საძიებო სისტემებისთვის და სასარგებლო დაგეგმვის კონტენტისთვის.',
+      badge: 'რჩეული სტატია',
       items: [
-        'rogor davgegmot destinaciuri qorwili saqartveloSi',
-        'sauketeso saqorwilo lokaciebi kaxetSi',
-        'qorwilis Rirebuleba saqartveloSi',
-        'tbilisis saqorwilo gzamkvlevi',
-        'iuridiuli qorwineba ucxoelebistvis'
+        'როგორ დავგეგმოთ დესტინაციური ქორწილი საქართველოში',
+        'საუკეთესო საქორწილო ლოკაციები კახეთში',
+        'ქორწილის ღირებულება საქართველოში',
+        'თბილისის საქორწილო გზამკვლევი',
+        'იურიდიული ქორწინება უცხოელებისთვის'
       ],
-      cta: 'waikitxet saqorwilo rCevebi'
+      cta: 'წაიკითხეთ საქორწილო რჩევები'
     },
     faq: {
-      eyebrow: 'xSiri kitxvebi',
-      title: 'pasuxebi kitxvebze, romlebsac yvelaze xSirad svamen.',
+      eyebrow: 'ხშირი კითხვები',
+      title: 'პასუხები კითხვებზე, რომლებსაც ყველაზე ხშირად სვამენ.',
       answer:
-        'diakh, saqartvelo ert-erti sauketeso mimartulebaa qorwilistvis. aq ertdroulad Sexvdebit ulamazes bunebas, mtebs, zRvispiretsa da istoriul qalaqebs, mdidar kulturas, tradiciebsa da stumartmoyvare garemos. gansakutrebiT gamoirCeva qarTuli samzareulo da Rvino, rac qorwils unikalu da dauviwyar gamocdilebad aqcevs.',
+        'დიახ, საქართველო ერთ-ერთი საუკეთესო მიმართულებაა ქორწილისთვის. აქ ერთდროულად შეხვდებით ულამაზეს ბუნებას, მთებს, ზღვისპირეთსა და ისტორიულ ქალაქებს, მდიდარ კულტურას, ტრადიციებსა და სტუმართმოყვარე გარემოს. განსაკუთრებით გამოირჩევა ქართული სამზარეულო და ღვინო, რაც ქორწილს უნიკალურ და დაუვიწყარ გამოცდილებად აქცევს.',
       items: [
-        'aris tu ara saqartvelo kargi mimartuleba qorwilistvis?',
-        'ra Rirs qorwili saqartveloSi?',
-        'SeuZliat tu ara ucxoelebs saqartveloSi kanonierad daqorwindnen?',
-        'ramdeni xnit adre unda davjavSnot?',
-        'gvekhmarebit tu ara dokumentebSi? ra Sedis tqvens momsaxurebaSi?'
+        'არის თუ არა საქართველო კარგი მიმართულება ქორწილისთვის?',
+        'რა ღირს ქორწილი საქართველოში?',
+        'შეუძლიათ თუ არა უცხოელებს საქართველოში კანონიერად დაქორწინება?',
+        'რამდენი ხნით ადრე უნდა დავჯავშნოთ?',
+        'გვეხმარებით თუ არა დოკუმენტებში? რა შედის თქვენს მომსახურებაში?'
       ],
       answers: [
-        'diakh, saqartvelo ert-erti sauketeso mimartulebaa qorwilistvis. aq ertdroulad Sexvdebit ulamazes bunebas, mtebs, zRvispiretsa da istoriul qalaqebs, mdidar kulturas, tradiciebsa da stumartmoyvare garemos. gansakutrebiT gamoirCeva qarTuli samzareulo da Rvino, rac qorwils unikalu da dauviwyar gamocdilebad aqcevs.',
-        'qorwilis Rirebuleba saqartveloSi damokidebulia mraval faktorze. pirvelad ufaso konsultaciaze Cven uzrunvelvyoft qorwilis detalebis dagegmarebas, mat Soris gansazRvravt qorwilis Rirebulebas, rogorc Cveni paketebis mixedvit, aseve tqvenze morgebuli survilebisa da SesaZleblobebis Sesabamisad.',
-        'diakh, saqartveloSi ucxoelebs martivad SeuZliat oficialurad daqorwineba. procesi sakmaod swrafi da martivia.',
-        'rekomendebulia qorwilis dajavSna minimum 3-6 tvit adre, gansakutrebiT tu popularul sezonze gegmavt. didi da maStaburi qorwilebistvis ki uketesia 6-12 tvit adre dagegmva, rata yvela detali mSvidad da xarisxianad moeswros.',
-        'diakh, Cven srulad Cartuli vart dokumentebis momzadebasa da qorwilis organizebaSi. Cvens momsaxurebaSi Sedis pirveladi ufaso konsultacia, saCiro dokumentebis SegrovebaSi daxmareba, tarjimnis uzrunvelyofa, qorwinebis registraciis organizeba, aseve lokaciis, dekoris, fotografis da sxva servisebis dagegmva. Cveni mizania, rom procesi tqventvis iyos martivi da stresisgan tavisufali.'
+        'დიახ, საქართველო ერთ-ერთი საუკეთესო მიმართულებაა ქორწილისთვის. აქ ერთდროულად შეხვდებით ულამაზეს ბუნებას, მთებს, ზღვისპირეთსა და ისტორიულ ქალაქებს, მდიდარ კულტურას, ტრადიციებსა და სტუმართმოყვარე გარემოს. განსაკუთრებით გამოირჩევა ქართული სამზარეულო და ღვინო, რაც ქორწილს უნიკალურ და დაუვიწყარ გამოცდილებად აქცევს.',
+        'ქორწილის ღირებულება საქართველოში დამოკიდებულია მრავალ ფაქტორზე. პირველ უფასო კონსულტაციაზე ერთად ვგეგმავთ ქორწილის დეტალებს და განვსაზღვრავთ მის ღირებულებას, როგორც ჩვენი პაკეტების მიხედვით, ისე თქვენს სურვილებსა და შესაძლებლობებზე მორგებით.',
+        'დიახ, საქართველოში უცხოელებს მარტივად შეუძლიათ ოფიციალურად დაქორწინება. პროცესი საკმაოდ სწრაფი და მარტივია.',
+        'რეკომენდებულია ქორწილის დაჯავშნა მინიმუმ 3-6 თვით ადრე, განსაკუთრებით თუ პოპულარულ სეზონზე გეგმავთ. დიდი და მასშტაბური ქორწილებისთვის კი უკეთესია 6-12 თვით ადრე დაგეგმვა, რათა ყველა დეტალი მშვიდად და ხარისხიანად მოესწროს.',
+        'დიახ, ჩვენ სრულად ვართ ჩართული დოკუმენტების მომზადებასა და ქორწილის ორგანიზებაში. ჩვენს მომსახურებაში შედის პირველადი უფასო კონსულტაცია, საჭირო დოკუმენტების შეგროვებაში დახმარება, თარჯიმნის უზრუნველყოფა, ქორწინების რეგისტრაციის ორგანიზება, ასევე ლოკაციის, დეკორის, ფოტოგრაფისა და სხვა სერვისების დაგეგმვა. ჩვენი მიზანია, რომ პროცესი თქვენთვის იყოს მარტივი და სტრესისგან თავისუფალი.'
       ]
     },
     extras: {
-      eyebrow: 'damatebiti funqciebi',
-      title: 'premium damatebebi, romlebic gamocdilebas tanamedrove da martivs xdis.',
+      eyebrow: 'დამატებითი ფუნქციები',
+      title: 'პრემიუმ დამატებები, რომლებიც გამოცდილებას თანამედროვესა და მარტივს ხდის.',
       items: [
-        'saqorwilo biujetis kalkulatori',
-        'venius maZiebeli',
-        'onlain konsultaciis dajavSna',
-        'instagram galerea',
-        'whatsapp Catis Rilaki'
+        'საქორწილო ბიუჯეტის კალკულატორი',
+        'ვენიუს მაძიებელი',
+        'ონლაინ კონსულტაციის დაჯავშნა',
+        'ინსტაგრამის გალერეა',
+        'ვოთსაპის ჩატის ღილაკი'
       ]
     },
     contact: {
-      eyebrow: 'kontaqti',
-      title: 'dagegmet tqveni saocnebo qorwili',
-      description: 'Seavset forma da Cveni gundi 24 saatSi dagikavSirdebat.',
+      eyebrow: 'კონტაქტი',
+      title: 'დაგეგმეთ თქვენი საოცნებო ქორწილი',
+      description: 'შეავსეთ ფორმა და ჩვენი გუნდი 24 საათში დაგიკავშირდებათ.',
       labels: {
-        name: 'saxeli',
-        email: 'elfosta',
-        phone: 'telefoni / whatsapp',
-        weddingType: 'What kind of wedding do you want?',
-        date: 'qorwilis tariRi',
-        guests: 'stumrebis raodenoba',
-        location: 'sasurveli lokacia',
-        budget: 'biujeti',
-        message: 'mesiji'
+        name: 'სახელი',
+        email: 'ელფოსტა',
+        phone: 'ტელეფონი / ვოთსაპი',
+        weddingType: 'როგორი ქორწილი გსურთ?',
+        date: 'ქორწილის თარიღი',
+        guests: 'სტუმრების რაოდენობა',
+        location: 'სასურველი ლოკაცია',
+        budget: 'ბიუჯეტი',
+        message: 'შეტყობინება'
       },
       placeholders: {
-        name: 'tqveni sruli saxeli',
+        name: 'თქვენი სრული სახელი',
         email: 'you@example.com',
         phone: '+995 ...',
-        weddingType: 'Coose wedding type',
-        guests: 'magalitad 50',
-        location: 'tbilisi, kaxeTi, yazbegi...',
-        budget: '$6,000-dan',
-        message: 'mogviyevit tqveni xedvis, stumrebis da stilis Sesaxeb.'
+        weddingType: 'აირჩიეთ ქორწილის ტიპი',
+        guests: 'მაგალითად, 50',
+        location: 'თბილისი, კახეთი, ყაზბეგი...',
+        budget: '$6,000-დან',
+        message: 'მოგვიყევით თქვენი ხედვის, სტუმრებისა და სტილის შესახებ.'
       },
       actions: {
-        consultation: 'dajavSnet ufaso konsultacia',
-        inquiry: 'gamogvigzavnet motxovna',
-        call: 'dagegmet videozari'
+        consultation: 'დაჯავშნეთ უფასო კონსულტაცია',
+        inquiry: 'გამოგვიგზავნეთ მოთხოვნა',
+        call: 'დაგეგმეთ ვიდეოზარი'
       },
-      cardTitle: 'ratom irCeven wyvilebi saqartvelos',
+      cardTitle: 'რატომ ირჩევენ წყვილები საქართველოს',
       reasons: [
-        'ucxoelebistvis qorwinebis swrafi da martivi procesi',
-        'luqs lokaciebi venaxebSi, mtebSi da zRvispiretSi',
-        'Zalian kargi Rirebuleba evropis bevr mimartulebastan Sedarebit',
-        'tbili maspinZloba da dauviwyari gamocdileba stumrebistvis'
+        'უცხოელებისთვის ქორწინების სწრაფი და მარტივი პროცესი',
+        'ლუქს ლოკაციები ვენახებში, მთებსა და ზღვისპირეთში',
+        'ძალიან კარგი ღირებულება ევროპის ბევრ მიმართულებასთან შედარებით',
+        'თბილი მასპინძლობა და დაუვიწყარი გამოცდილება სტუმრებისთვის'
       ]
     }
   }
